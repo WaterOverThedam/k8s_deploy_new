@@ -1,0 +1,153 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+NODES = 3
+DISKS = 1
+CACHE = true
+DISK_DIR = "/Volumes/Extreme-SSD/Storage"
+LIBVIRT_DISK_CACHE = "default"
+SETTINGS = {}
+SETTINGS['ssh_path'] = "~/.ssh"
+SETTINGS['authorize'] = "#{SETTINGS['ssh_path']}/id_rsa.pub"
+SETTINGS['key'] = "#{SETTINGS['ssh_path']}/.ssh/id_rsa"
+
+
+Vagrant.configure("2") do |config|
+    config.ssh.insert_key = false
+    config.ssh.username = "vagrant"
+    config.vm.box = "centos/7"
+    config.vm.box_url = "https://app.vagrantup.com/centos/7"
+    config.vm.box_version = "2004.01"
+    config.vm.box_check_update = false
+    config.vbguest.auto_update = false
+    #config.vm.synced_folder '/Users/tonywu/Downloads', '/home/vagrant/sync', type: "nfs", linux__nfs_options: ['rw','no_subtree_check','all_squash','async']
+
+    if SETTINGS.include? 'authorize'
+        if File.exist? File.expand_path(SETTINGS['authorize'])
+          config.vm.provision 'shell' do |s|
+            s.inline = "echo $1 | grep -xq \"$1\" /home/vagrant/.ssh/authorized_keys || echo \"\n$1\" | tee -a /home/vagrant/.ssh/authorized_keys;"
+            s.args = [File.read(File.expand_path(SETTINGS['authorize']))]
+          end
+        end
+    end
+    if SETTINGS.include? 'key'
+        if File.exist? File.expand_path(SETTINGS['key'])
+            config.vm.provision 'shell' do |s|
+              s.privileged = false
+              s.inline = "echo \"$1\" > /home/vagrant/.ssh/$2 && chmod 600 /home/vagrant/.ssh/$2"
+              s.args = [File.read(File.expand_path(SETTINGS['key'])), SETTINGS['key'].split('/').last]
+            end
+        end
+    end
+  #if SETTINGS.include? 'ssh_path'
+  #    if File.directory? File.expand_path(SETTINGS['ssh_path'])
+  #        config.vm.provision "file", source: SETTINGS['ssh_path'], destination: "/tmp" 
+  #        config.vm.provision 'shell' do |s|
+  #          s.name = "ssh_dir"
+  #          s.privileged = true
+  #          s.inline = "mv /tmp/$1 /root/"
+  #          s.args = [SETTINGS['key'].split('/').last]
+  #        end
+  #    end
+  #end
+  
+
+    # Override
+    config.vm.provider :libvirt do |v,override|
+        #override.vm.synced_folder '/Users/tonywu/Downloads', '/home/vagrant/sync' 
+        # change cpu mode to passthrough as workaround, refer bugs:
+        #https://bugzilla.redhat.com/show_bug.cgi?id=1467599
+        #https://bugzilla.redhat.com/show_bug.cgi?id=1386223#c10
+        #vagrant-libvirt/vagrant-libvirt#667
+        v.cpu_mode = 'host-passthrough'
+    end
+    # disable usb
+    config.vm.provider "virtualbox" do |vb|
+      # VM Customizations go here
+      vb.customize ["modifyvm", :id, "--usb", "off"]
+      vb.customize ["modifyvm", :id, "--usbehci", "off"]
+    end
+
+    ##set proxy
+    #$script = <<-'SCRIPT'
+    #sed -i '/http_proxy/d;$a export http_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile  /etc/profile
+    #sed -i '/https_proxy/d;$a export https_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile /etc/profile
+    #sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
+    #tar -xf /home/vagrant/sync/lang_CN.tar.gz && yum install lang_CN/*  -y
+    #yum install lvm2 -y
+    #SCRIPT
+    #config.vm.provision :shell, inline: $script
+    ## config.vm.provision "shell", path: "update_yum_repo.sh"
+    ## Make kube master
+    config.vm.define "win-master" do |master|
+        master.vm.network :private_network, ip: "192.168.10.90"
+        master.vm.host_name = "win-master"
+
+        master.vm.provider :virtualbox do |vb|
+            vb.memory = 2048
+            vb.cpus = 2
+        end
+        master.vm.provider :libvirt do |lv|
+            lv.memory = 2048
+            lv.cpus = 2
+            lv.volume_cache = LIBVIRT_DISK_CACHE
+        end
+
+        # View the documentation for the provider you're using for more
+        # information on available options.
+        master.vm.provision :ansible do |ansible|
+             ansible.verbose = true
+             ansible.limit = "all"
+             ansible.raw_arguments  = [
+               "-t timezone", 
+             #  "-v"
+             ]       
+             ansible.playbook = "site.yml"
+             ansible.groups = {
+                 "master" => ["win_master"],
+                 "nodes" => (0..NODES-1).map {|j| "win_node#{j}"},
+             }
+             ansible.extra_vars = {
+                 "vagrant_home"  => ENV['VAGRANT_HOME'] ? ENV['VAGRANT_HOME'] : "~/.vagrant.d",
+                 "vagrant_cache" => ENV['VAGRANT_CACHE'] ? ENV['VAGRANT_CACHE'] : CACHE,
+                 "vagrant_ssh_source" => File.expand_path(SETTINGS['ssh_path']),
+                 "vagrant_master"  => "192.168.10.90"
+            }
+        end
+
+    end
+
+    # Make the glusterfs cluster, each with DISKS number of drives
+    (1..NODES).each do |i|
+        config.vm.define "win-node#{i}" do |node|
+            node.vm.hostname = "win-node#{i}"
+            node.vm.network :private_network, ip: "192.168.10.10#{i}"
+
+            # Settings for Virtualbox
+            node.vm.provider :virtualbox do |vb|
+                unless File.exist?("#{DISK_DIR}/disk-#{i}-0.vdi")
+                    vb.customize ["storagectl", :id,"--name", "VboxSata", "--remove"]
+                    vb.customize ["storagectl", :id,"--name", "VboxSata", "--add", "sata"]
+                end
+            end
+
+            (0..DISKS-1).each do |d|
+                node.vm.provider :virtualbox do |vb|
+                    unless File.exist?("#{DISK_DIR}/disk-#{i}-#{d}.vdi")
+                        #vb.customize [ "createmedium", "--filename", "#{DISK_DIR}/disk-#{i}-#{d}.vdi", "--size", 1024*1024 ]
+                        vb.customize [ "storageattach", :id, "--storagectl", "VboxSata", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "#{DISK_DIR}/disk-#{i}-#{d}.vdi" ]
+                    end
+                    vb.memory = 2048
+                    vb.cpus = 2
+                end
+                node.vm.provider :libvirt do  |lv|
+                    driverletters = ('b'..'z').to_a
+                    lv.storage :file, :device => "vd#{driverletters[d]}", :path => "atomic-disk-#{i}-#{d}.disk", :size => '1024G'
+                    lv.memory = 2048
+                    lv.cpus =2
+                    lv.volume_cache = LIBVIRT_DISK_CACHE
+                end
+            end
+        end
+    end
+end

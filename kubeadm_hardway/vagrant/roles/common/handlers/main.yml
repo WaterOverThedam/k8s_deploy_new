@@ -1,0 +1,22 @@
+---
+
+- name: restart crond
+  systemd: 
+    name: crond
+    state: restarted
+    enabled: yes 
+    daemon_reload: yes
+
+- name: restart sshd
+  systemd: 
+    name: sshd
+    state: restarted
+
+- name: restart rsyslog
+  systemd: 
+    name: rsyslog
+    state: restarted
+  delegate_to: localhost
+
+
+

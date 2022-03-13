@@ -1,0 +1,9 @@
+﻿test/
+backup/
+.DS_Store
+cka-example-environments-master
+k8s-cluster.code-workspace
+k8s-vagrant-playground-CKA
+kubeadm_ubuntu
+kubernetes-repo
+kubernetes-vagrant-centos-cluster

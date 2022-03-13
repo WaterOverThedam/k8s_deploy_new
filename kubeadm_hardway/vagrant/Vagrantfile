@@ -1,0 +1,184 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+NODES = 3
+DISKS = 2
+DISKS_SIZE=10
+CACHE = true
+DISK_DIR = "/Volumes/Extreme-SSD/Storage"
+LIBVIRT_DISK_CACHE = "default"
+SETTINGS = {}
+SETTINGS['ssh_path'] = "~/.ssh"
+SETTINGS['authorize'] = "#{SETTINGS['ssh_path']}/id_rsa.pub"
+SETTINGS['key'] = "#{SETTINGS['ssh_path']}/.ssh/id_rsa"
+
+
+Vagrant.configure("2") do |config|
+    config.ssh.insert_key = false
+    config.ssh.username = "vagrant"
+    config.vm.box = "centos/7"
+    config.vm.box_url = "https://app.vagrantup.com/centos/7"
+    config.vm.box_version = "2004.01"
+    config.vm.box_check_update = false
+    config.vbguest.auto_update = false
+    #config.vm.synced_folder '/Users/tonywu/Downloads', '/home/vagrant/sync', type: "nfs", linux__nfs_options: ['rw','no_subtree_check','all_squash','async']
+
+    if SETTINGS.include? 'authorize'
+        if File.exist? File.expand_path(SETTINGS['authorize'])
+          config.vm.provision 'shell' do |s|
+            s.inline = "echo $1 | grep -xq \"$1\" /home/vagrant/.ssh/authorized_keys || echo \"\n$1\" | tee -a /home/vagrant/.ssh/authorized_keys;"
+            s.args = [File.read(File.expand_path(SETTINGS['authorize']))]
+          end
+        end
+    end
+    if SETTINGS.include? 'key'
+        if File.exist? File.expand_path(SETTINGS['key'])
+            config.vm.provision 'shell' do |s|
+              s.privileged = false
+              s.inline = "echo \"$1\" > /home/vagrant/.ssh/$2 && chmod 600 /home/vagrant/.ssh/$2"
+              s.args = [File.read(File.expand_path(SETTINGS['key'])), SETTINGS['key'].split('/').last]
+            end
+        end
+    end
+  #if SETTINGS.include? 'ssh_path'
+  #    if File.directory? File.expand_path(SETTINGS['ssh_path'])
+  #        config.vm.provision "file", source: SETTINGS['ssh_path'], destination: "/tmp" 
+  #        config.vm.provision 'shell' do |s|
+  #          s.name = "ssh_dir"
+  #          s.privileged = true
+  #          s.inline = "mv /tmp/$1 /root/"
+  #          s.args = [SETTINGS['key'].split('/').last]
+  #        end
+  #    end
+  #end
+  
+
+    # Override
+    config.vm.provider :libvirt do |v,override|
+        #override.vm.synced_folder '/Users/tonywu/Downloads', '/home/vagrant/sync' 
+        # change cpu mode to passthrough as workaround, refer bugs:
+        #https://bugzilla.redhat.com/show_bug.cgi?id=1467599
+        #https://bugzilla.redhat.com/show_bug.cgi?id=1386223#c10
+        #vagrant-libvirt/vagrant-libvirt#667
+        v.cpu_mode = 'host-passthrough'
+    end
+    # disable usb
+    config.vm.provider "virtualbox" do |vb|
+      # VM Customizations go here
+      vb.customize ["modifyvm", :id, "--usb", "off"]
+      vb.customize ["modifyvm", :id, "--usbehci", "off"]
+    end
+
+    #set proxy
+    $script = <<-'SCRIPT'
+    #curl -o /etc/yum.repos.d/epel-7.repo http://mirrors.aliyun.com/repo/epel-7.repo  
+    sed -i '/http_proxy/d;$a export http_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile  /etc/profile
+    sed -i '/https_proxy/d;$a export https_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile /etc/profile
+    sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
+    SCRIPT
+    config.vm.provision :shell, inline: $script
+    # config.vm.provision "shell", path: "update_yum_repo.sh"
+    # Make kube ops
+  # config.vm.define "hw-ops" do |ops|
+  #     ops.vm.network :private_network, ip: "192.168.10.120"
+  #     ops.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
+  #     ops.vm.network :forwarded_port, guest: 22, host: "2240", auto_correct: true
+  #     ops.vm.host_name = "hw-ops"
+
+  #     ops.vm.provider :virtualbox do |vb|
+  #         vb.memory = 2048
+  #         vb.cpus = 2
+  #     end
+  #     ops.vm.provider :libvirt do |lv|
+  #         lv.memory = 2048
+  #         lv.cpus = 2
+  #         lv.volume_cache = LIBVIRT_DISK_CACHE
+  #     end
+  # 
+  #     ops.vm.provider :virtualbox do |vb|
+  #         unless File.exist?("#{DISK_DIR}/hw-disk-ops-0.vdi")
+  #             vb.customize ["storagectl", :id,"--name", "VboxSata", "--remove"]
+  #             vb.customize ["storagectl", :id,"--name", "VboxSata", "--add", "sata"]
+  #         end
+  #     end
+  #    (0..DISKS-1).each do |d|
+  #       ops.vm.provider :virtualbox do |vb|
+  #           unless File.exist?("#{DISK_DIR}/hw-disk-ops-#{d}.vdi")
+  #               #puts "#{DISK_DIR}/hw-disk-ops-#{d}.vdi"
+  #               #vb.customize [ "closemedium", "disk", "#{DISK_DIR}/hw-disk-ops-#{d}.vdi", "--delete"]
+  #               #vb.customize [ "createmedium", "--filename", "#{DISK_DIR}/hw-disk-ops-#{d}.vdi", "--size", 1024*DISKS_SIZE]
+  #           end
+  #           vb.customize [ "storageattach", :id, "--storagectl", "VboxSata", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "#{DISK_DIR}/hw-disk-ops-#{d}.vdi" ]  
+  #           vb.memory = 2048
+  #           vb.cpus = 2
+  #       end
+  #       ops.vm.provider :libvirt do  |lv|
+  #           driverletters = ('b'..'z').to_a
+  #           lv.storage :file, :device => "vd#{driverletters[d]}", :path => "atomic-hw-disk-ops-0.disk", :size => "#{DISKS_SIZE}G"
+  #           lv.memory = 2048
+  #           lv.cpus =2
+  #           lv.volume_cache = LIBVIRT_DISK_CACHE
+  #       end
+  #    end
+
+        # View the documentation for the provider you're using for more
+        # information on available options.
+    #   ops.vm.provision :ansible do |ansible|
+    #        ansible.verbose = true
+    #        ansible.limit = "all"
+    #        ansible.raw_arguments  = [
+    #         "-t limit_remove", 
+    #        #  "-v"
+    #        ]       
+    #        ansible.playbook = "site.yml"
+    #        ansible.groups = {
+    #            "ops" => ["hw_ops"],
+    #            "nodes" => (0..NODES-1).map {|j| "hw_node#{j}"},
+    #        }
+    #        ansible.extra_vars = {
+    #            "vagrant_home"  => ENV['VAGRANT_HOME'] ? ENV['VAGRANT_HOME'] : "~/.vagrant.d",
+    #            "vagrant_cache" => ENV['VAGRANT_CACHE'] ? ENV['VAGRANT_CACHE'] : CACHE,
+    #            "vagrant_ssh_source" => File.expand_path(SETTINGS['ssh_path']),
+    #            "vagrant_ops"  => "192.168.10.120"
+    #       }
+    #   end
+
+    #end
+
+    # Make the glusterfs cluster, each with DISKS number of drives
+    (1..NODES).each do |i|
+        config.vm.define "hw-node#{i}" do |node|
+            node.vm.hostname = "hw-node#{i}"
+            node.vm.network :private_network, ip: "192.168.10.12#{i}"
+            node.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
+            node.vm.network :forwarded_port, guest: 22, host: "224#{i}", auto_correct: true
+            # Settings for Virtualbox
+            # 每个node执行一次
+            node.vm.provider :virtualbox do |vb|
+                unless File.exist?("#{DISK_DIR}/hw-disk-#{i}-0.vdi")
+                    vb.customize ["storagectl", :id,"--name", "VboxSata", "--remove"]
+                    vb.customize ["storagectl", :id,"--name", "VboxSata", "--add", "sata"]
+                end
+            end
+            # 每个disk执行一次
+            (0..DISKS-1).each do |d|
+                node.vm.provider :virtualbox do |vb|
+                    unless File.exist?("#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi")
+                       vb.customize [ "createmedium", "--filename", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi", "--size", 1024*DISKS_SIZE]
+                    end
+                    vb.customize [ "storageattach", :id, "--storagectl", "VboxSata", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi" ]  
+                    vb.memory = 2048
+                    vb.cpus = 2
+                end
+                node.vm.provider :libvirt do  |lv|
+                    driverletters = ('b'..'z').to_a
+                    lv.storage :file, :device => "vd#{driverletters[d]}", :path => "atomic-hw-disk-#{i}-#{d}.disk", :size => "#{DISKS_SIZE}G"
+                    lv.memory = 2048
+                    lv.cpus =2
+                    lv.volume_cache = LIBVIRT_DISK_CACHE
+                end
+            end
+        end
+    end
+end
+ 

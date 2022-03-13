@@ -1,0 +1,7 @@
+  - name: Adding the path in the bashrc files
+    lineinfile: dest=/home/user1/.bashrc line='export MY_VAR=TEST' insertafter='EOF' state=present
+
+  - name: Source the bashrc file
+    shell: . ~/.bashrc 
+
+  - debug: msg={{lookup('env','MY_VAR')}}
