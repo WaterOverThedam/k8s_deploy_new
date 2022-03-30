@@ -7,3 +7,6 @@ k8s-vagrant-playground-CKA
 kubeadm_ubuntu
 kubernetes-repo
 kubernetes-vagrant-centos-cluster
+Kubernetes-the-hard-way-with-Ansible-master
+centos*
+test*
