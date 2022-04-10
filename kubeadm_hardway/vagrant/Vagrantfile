@@ -5,7 +5,7 @@ NODES = 3
 DISKS = 2
 DISKS_SIZE=10
 CACHE = true
-DISK_DIR = "/Volumes/Extreme-SSD/Storage"
+DISK_DIR = "./volumes"
 LIBVIRT_DISK_CACHE = "default"
 SETTINGS = {}
 SETTINGS['ssh_path'] = "~/.ssh"
@@ -149,14 +149,14 @@ Vagrant.configure("2") do |config|
     (1..NODES).each do |i|
         config.vm.define "hw-node#{i}" do |node|
             node.vm.hostname = "hw-node#{i}"
-            node.vm.network :private_network, ip: "192.168.10.12#{i}"
+            node.vm.network :private_network, ip: "192.168.56.12#{i}"
             node.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
             node.vm.network :forwarded_port, guest: 22, host: "224#{i}", auto_correct: true
             # Settings for Virtualbox
             # 每个node执行一次
             node.vm.provider :virtualbox do |vb|
                 unless File.exist?("#{DISK_DIR}/hw-disk-#{i}-0.vdi")
-                    vb.customize ["storagectl", :id,"--name", "VboxSata", "--remove"]
+                    #vb.customize ["storagectl", :id,"--name", "VboxSata", "--remove"]
                     vb.customize ["storagectl", :id,"--name", "VboxSata", "--add", "sata"]
                 end
             end
@@ -167,7 +167,7 @@ Vagrant.configure("2") do |config|
                        vb.customize [ "createmedium", "--filename", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi", "--size", 1024*DISKS_SIZE]
                     end
                     vb.customize [ "storageattach", :id, "--storagectl", "VboxSata", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi" ]  
-                    vb.memory = 2048
+                    vb.memory = 6144
                     vb.cpus = 2
                 end
                 node.vm.provider :libvirt do  |lv|

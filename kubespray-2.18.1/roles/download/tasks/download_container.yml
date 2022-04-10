@@ -62,7 +62,10 @@
       delay: "{{ retry_stagger | random + 3 }}"
       retries: 4
       become: "{{ user_can_become_root | default(false) or not download_localhost }}"
-      environment: "{{ proxy_env if container_manager == 'containerd' else omit }}"
+      environment:
+        - http_proxy: "http://192.168.0.112:7890"
+        - https_proxy: "http://192.168.0.112:7890"   
+      #"{{ proxy_env if container_manager == 'containerd' else omit }}"
       when:
         - pull_required or download_run_once
         - not image_is_cached
