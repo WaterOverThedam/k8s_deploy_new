@@ -98,7 +98,7 @@ if ! File.exist?(File.join(File.dirname($inventory), "hosts.ini"))
 end
 
 if Vagrant.has_plugin?("vagrant-proxyconf")
-  $no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "127.0.0.1,localhost"
+  $no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "127.0.0.1,localhost,myharbor.com"
   (1..$num_instances).each do |i|
       $no_proxy += ",#{$subnet}.#{i+100}"
   end

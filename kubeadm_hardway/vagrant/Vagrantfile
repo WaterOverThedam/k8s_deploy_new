@@ -10,7 +10,7 @@ LIBVIRT_DISK_CACHE = "default"
 SETTINGS = {}
 SETTINGS['ssh_path'] = "~/.ssh"
 SETTINGS['authorize'] = "#{SETTINGS['ssh_path']}/id_rsa.pub"
-SETTINGS['key'] = "#{SETTINGS['ssh_path']}/.ssh/id_rsa"
+SETTINGS['key'] = "#{SETTINGS['ssh_path']}/id_rsa"
 
 
 Vagrant.configure("2") do |config|
@@ -40,22 +40,12 @@ Vagrant.configure("2") do |config|
             end
         end
     end
-  #if SETTINGS.include? 'ssh_path'
-  #    if File.directory? File.expand_path(SETTINGS['ssh_path'])
-  #        config.vm.provision "file", source: SETTINGS['ssh_path'], destination: "/tmp" 
-  #        config.vm.provision 'shell' do |s|
-  #          s.name = "ssh_dir"
-  #          s.privileged = true
-  #          s.inline = "mv /tmp/$1 /root/"
-  #          s.args = [SETTINGS['key'].split('/').last]
-  #        end
-  #    end
-  #end
+ 
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.synced_folder "files/k8s_demo", "/home/vagrant/k8s_demo",create: true, type: "rsync", rsync__args: ['--verbose', '--archive', '--delete', '-z']
   
-
     # Override
     config.vm.provider :libvirt do |v,override|
-        #override.vm.synced_folder '/Users/tonywu/Downloads', '/home/vagrant/sync' 
         # change cpu mode to passthrough as workaround, refer bugs:
         #https://bugzilla.redhat.com/show_bug.cgi?id=1467599
         #https://bugzilla.redhat.com/show_bug.cgi?id=1386223#c10
@@ -69,14 +59,19 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--usbehci", "off"]
     end
 
+    if Vagrant.has_plugin?("vagrant-proxyconf")
+        node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
+        node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
+        node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "127.0.0.1,localhost,myharbor.com"
+    end
     #set proxy
     $script = <<-'SCRIPT'
     #curl -o /etc/yum.repos.d/epel-7.repo http://mirrors.aliyun.com/repo/epel-7.repo  
-    sed -i '/http_proxy/d;$a export http_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile  /etc/profile
-    sed -i '/https_proxy/d;$a export https_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile /etc/profile
+    #sed -i '/http_proxy/d;$a export http_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile  /etc/profile
+    #sed -i '/https_proxy/d;$a export https_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile /etc/profile
     sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
     SCRIPT
-    config.vm.provision :shell, inline: $script
+    config.vm.provision "config",type: "shell", inline: $script
     # config.vm.provision "shell", path: "update_yum_repo.sh"
     # Make kube ops
   # config.vm.define "hw-ops" do |ops|
@@ -169,13 +164,6 @@ Vagrant.configure("2") do |config|
                     vb.customize [ "storageattach", :id, "--storagectl", "VboxSata", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi" ]  
                     vb.memory = 6144
                     vb.cpus = 2
-                end
-                node.vm.provider :libvirt do  |lv|
-                    driverletters = ('b'..'z').to_a
-                    lv.storage :file, :device => "vd#{driverletters[d]}", :path => "atomic-hw-disk-#{i}-#{d}.disk", :size => "#{DISKS_SIZE}G"
-                    lv.memory = 2048
-                    lv.cpus =2
-                    lv.volume_cache = LIBVIRT_DISK_CACHE
                 end
             end
         end
