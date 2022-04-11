@@ -9,7 +9,7 @@ iptables -F && iptables -X && iptables -F -t nat && iptables -X -t nat && iptabl
 swapoff -a && free –h
 
 # 关闭dnsmasq(否则可能导致容器无法解析域名)
-systemctl status dnsmasq && {
+systemctl status dnsmasq &>/dev/null && {
  service dnsmasq stop 
  systemctl disable dnsmasq
 }
