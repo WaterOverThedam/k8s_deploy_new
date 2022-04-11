@@ -69,6 +69,7 @@ Vagrant.configure("2") do |config|
     sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
     SCRIPT
     config.vm.provision "config",type: "shell", inline: $script
+    config.vm.provision "tunning",type: "shell", path: "k8s-host_tunning.sh",privileged: true
     # config.vm.provision "shell", path: "update_yum_repo.sh"
     # Make kube ops
   # config.vm.define "hw-ops" do |ops|
