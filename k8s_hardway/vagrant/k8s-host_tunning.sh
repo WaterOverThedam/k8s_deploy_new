@@ -9,8 +9,10 @@ iptables -F && iptables -X && iptables -F -t nat && iptables -X -t nat && iptabl
 swapoff -a && free –h
 
 # 关闭dnsmasq(否则可能导致容器无法解析域名)
-service dnsmasq stop && systemctl disable dnsmasq
-
+systemctl status dnsmasq && {
+ service dnsmasq stop 
+ systemctl disable dnsmasq
+}
 cat > /etc/sysctl.d/kubernetes.conf <<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -20,4 +22,4 @@ vm.swappiness = 0
 vm.overcommit_memory = 1
 EOF
 # 生效文件
-sysctl -p /etc/sysctl.d/kubernetes.conf
+modprobe br_netfilter && sysctl -p /etc/sysctl.d/kubernetes.conf
