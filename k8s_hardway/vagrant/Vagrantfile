@@ -59,16 +59,13 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--usbehci", "off"]
     end
 
-    if Vagrant.has_plugin?("vagrant-proxyconf")
-        node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
-        node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
-        node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "127.0.0.1,localhost,myharbor.com"
-    end
+
     #set proxy
     $script = <<-'SCRIPT'
     #curl -o /etc/yum.repos.d/epel-7.repo http://mirrors.aliyun.com/repo/epel-7.repo  
     #sed -i '/http_proxy/d;$a export http_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile  /etc/profile
     #sed -i '/https_proxy/d;$a export https_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile /etc/profile
+    scp -r  /home/vagrant/.ssh /root/
     sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
     SCRIPT
     config.vm.provision "config",type: "shell", inline: $script
@@ -144,9 +141,14 @@ Vagrant.configure("2") do |config|
     (1..NODES).each do |i|
         config.vm.define "hw-node#{i}" do |node|
             node.vm.hostname = "hw-node#{i}"
-            node.vm.network :private_network, ip: "192.168.56.12#{i}"
+            node.vm.network "public_network", ip: "192.168.0.5#{i}",bridge: "en0: 以太网"
             node.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
             node.vm.network :forwarded_port, guest: 22, host: "224#{i}", auto_correct: true
+            if Vagrant.has_plugin?("vagrant-proxyconf")
+                node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
+                node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
+                node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "127.0.0.1,localhost,myharbor.com"
+            end
             # Settings for Virtualbox
             # 每个node执行一次
             node.vm.provider :virtualbox do |vb|
