@@ -139,6 +139,8 @@ Vagrant.configure("2") do |config|
     #end
 
     # Make the glusterfs cluster, each with DISKS number of drives
+    NO_PROXY=(0..NODES-1).map {|j| "192.168.0.5#{j}"}
+    NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
     (1..NODES).each do |i|
         config.vm.define "hw-node#{i}" do |node|
             node.vm.hostname = "hw-node#{i}"
@@ -148,7 +150,7 @@ Vagrant.configure("2") do |config|
             if Vagrant.has_plugin?("vagrant-proxyconf")
                 node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
                 node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
-                node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "127.0.0.1,localhost,myharbor.com"
+                node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "#{NO_PROXY.join(',')}"
             end
             # Settings for Virtualbox
             # 每个node执行一次
