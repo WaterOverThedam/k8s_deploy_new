@@ -135,7 +135,6 @@ Vagrant.configure("2") do |config|
     #            "vagrant_ops"  => "192.168.10.120"
     #       }
     #   end
-
     #end
 
     # Make the glusterfs cluster, each with DISKS number of drives
@@ -147,11 +146,12 @@ Vagrant.configure("2") do |config|
             node.vm.network "public_network", ip: "192.168.0.5#{i}",bridge: "en0: 以太网"
             node.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
             node.vm.network :forwarded_port, guest: 22, host: "224#{i}", auto_correct: true
-            if Vagrant.has_plugin?("vagrant-proxyconf")
-                node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
-                node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
-                node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "#{NO_PROXY.join(',')}"
-            end
+            # 全局代理影响太大
+            # if Vagrant.has_plugin?("vagrant-proxyconf")
+            #     node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
+            #     node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
+            #     node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "#{NO_PROXY.join(',')}"
+            # end
             # Settings for Virtualbox
             # 每个node执行一次
             node.vm.provider :virtualbox do |vb|
