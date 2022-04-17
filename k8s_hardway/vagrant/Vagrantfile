@@ -60,16 +60,78 @@ Vagrant.configure("2") do |config|
 
     #set proxy
     $script = <<-'SCRIPT'
-    #curl -o /etc/yum.repos.d/epel-7.repo http://mirrors.aliyun.com/repo/epel-7.repo  
-    #sed -i '/http_proxy/d;$a export http_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile  /etc/profile
-    #sed -i '/https_proxy/d;$a export https_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile /etc/profile
     scp -r  /home/vagrant/.ssh /root/
     sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
     SCRIPT
     config.vm.provision "config",type: "shell", inline: $script
     # config.vm.provision "tunning",type: "shell", path: "k8s-host_tunning.sh",privileged: true
     # config.vm.provision "shell", path: "update_yum_repo.sh"
-     
+    # Make kube ops
+  # config.vm.define "hw-ops" do |ops|
+  #     ops.vm.network :private_network, ip: "192.168.10.120"
+  #     ops.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
+  #     ops.vm.network :forwarded_port, guest: 22, host: "2240", auto_correct: true
+  #     ops.vm.host_name = "hw-ops"
+
+  #     ops.vm.provider :virtualbox do |vb|
+  #         vb.memory = 2048
+  #         vb.cpus = 2
+  #     end
+  #     ops.vm.provider :libvirt do |lv|
+  #         lv.memory = 2048
+  #         lv.cpus = 2
+  #         lv.volume_cache = LIBVIRT_DISK_CACHE
+  #     end
+  # 
+  #     ops.vm.provider :virtualbox do |vb|
+  #         unless File.exist?("#{DISK_DIR}/hw-disk-ops-0.vdi")
+  #             vb.customize ["storagectl", :id,"--name", "VboxSata", "--remove"]
+  #             vb.customize ["storagectl", :id,"--name", "VboxSata", "--add", "sata"]
+  #         end
+  #     end
+  #    (0..DISKS-1).each do |d|
+  #       ops.vm.provider :virtualbox do |vb|
+  #           unless File.exist?("#{DISK_DIR}/hw-disk-ops-#{d}.vdi")
+  #               #puts "#{DISK_DIR}/hw-disk-ops-#{d}.vdi"
+  #               #vb.customize [ "closemedium", "disk", "#{DISK_DIR}/hw-disk-ops-#{d}.vdi", "--delete"]
+  #               #vb.customize [ "createmedium", "--filename", "#{DISK_DIR}/hw-disk-ops-#{d}.vdi", "--size", 1024*DISKS_SIZE]
+  #           end
+  #           vb.customize [ "storageattach", :id, "--storagectl", "VboxSata", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "#{DISK_DIR}/hw-disk-ops-#{d}.vdi" ]  
+  #           vb.memory = 2048
+  #           vb.cpus = 2
+  #       end
+  #       ops.vm.provider :libvirt do  |lv|
+  #           driverletters = ('b'..'z').to_a
+  #           lv.storage :file, :device => "vd#{driverletters[d]}", :path => "atomic-hw-disk-ops-0.disk", :size => "#{DISKS_SIZE}G"
+  #           lv.memory = 2048
+  #           lv.cpus =2
+  #           lv.volume_cache = LIBVIRT_DISK_CACHE
+  #       end
+  #    end
+
+        # View the documentation for the provider you're using for more
+        # information on available options.
+    #   ops.vm.provision :ansible do |ansible|
+    #        ansible.verbose = true
+    #        ansible.limit = "all"
+    #        ansible.raw_arguments  = [
+    #         "-t limit_remove", 
+    #        #  "-v"
+    #        ]       
+    #        ansible.playbook = "site.yml"
+    #        ansible.groups = {
+    #            "ops" => ["hw_ops"],
+    #            "nodes" => (0..NODES-1).map {|j| "hw_node#{j}"},
+    #        }
+    #        ansible.extra_vars = {
+    #            "vagrant_home"  => ENV['VAGRANT_HOME'] ? ENV['VAGRANT_HOME'] : "~/.vagrant.d",
+    #            "vagrant_cache" => ENV['VAGRANT_CACHE'] ? ENV['VAGRANT_CACHE'] : CACHE,
+    #            "vagrant_ssh_source" => File.expand_path(SETTINGS['ssh_path']),
+    #            "vagrant_ops"  => "192.168.10.120"
+    #       }
+    #   end
+    #end
+
     # Make the glusterfs cluster, each with DISKS number of drives
     NO_PROXY=(1..NODES).map {|j| "192.168.0.5#{j}"}
     NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
@@ -79,11 +141,12 @@ Vagrant.configure("2") do |config|
             node.vm.network "public_network", ip: "192.168.0.5#{i}",bridge: "en0: 以太网"
             node.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
             node.vm.network :forwarded_port, guest: 22, host: "224#{i}", auto_correct: true
-            if Vagrant.has_plugin?("vagrant-proxyconf")
-                node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
-                node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
-                node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "#{NO_PROXY.join(',')}"
-            end
+            # 全局代理影响太大
+            # if Vagrant.has_plugin?("vagrant-proxyconf")
+            #     node.proxy.http     = ENV['HTTP_PROXY'] || ENV['http_proxy'] || "http://192.168.0.112:7890"
+            #     node.proxy.https    = ENV['HTTPS_PROXY'] || ENV['https_proxy'] ||  "http://192.168.0.112:7890"
+            #     node.proxy.no_proxy = ENV['NO_PROXY'] || ENV['no_proxy'] || "#{NO_PROXY.join(',')}"
+            # end
             # Settings for Virtualbox
             # 每个node执行一次
             node.vm.provider :virtualbox do |vb|
