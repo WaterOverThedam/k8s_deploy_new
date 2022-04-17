@@ -11,20 +11,26 @@ systemctl stop firewalld && systemctl disable firewalld
 iptables -F && iptables -X && iptables -F -t nat && iptables -X -t nat && iptables -P FORWARD ACCEPT
 
 #环境变量
-grep 'nerdctl' /etc/bashrc &>/dev/null || {
+grep /usr/local/bin /etc/bashrc &>/dev/null || {
 echo '
 export PATH=$PATH:/usr/local/bin
+'>>/etc/bashrc
+}
+nerdctl --version &>/dev/null && [ $(grep -c nerdctl /etc/bashrc) -eq 0 ] && {
+echo '
 alias docker="nerdctl -n k8s.io"
-'>>/etc/bashrc 
-kubectl --help &>/dev/null || {
+'>>/etc/bashrc
+}
+kubectl version &>/dev/null && [ $(grep -c kubectl /etc/bashrc) -eq 0 ] && {
 echo '
 alias k=kubectl
 alias kk="kubectl -n kube-system"
 alias docker="nerdctl -n k8s.io"
 export do="--dry-run=client -o yaml"
 complete -F __start_kubectl k
-'>>/etc/bashrc 
+'>>/etc/bashrc
 }
+
 source /etc/bashrc
 #纠正时区
 sudo timedatectl set-timezone 'Asia/Shanghai'

@@ -43,6 +43,8 @@ Vagrant.configure("2") do |config|
  
     config.vm.synced_folder ".", "/vagrant", disabled: true
     config.vm.synced_folder "files/k8s_demo", "/home/vagrant/k8s_demo",create: true, type: "rsync", rsync__args: ['--verbose', '--archive', '--delete', '-z']
+  
+    # Override
     config.vm.provider :libvirt do |v,override|
         # change cpu mode to passthrough as workaround, refer bugs:
         #https://bugzilla.redhat.com/show_bug.cgi?id=1467599
@@ -60,11 +62,14 @@ Vagrant.configure("2") do |config|
 
     #set proxy
     $script = <<-'SCRIPT'
+    #curl -o /etc/yum.repos.d/epel-7.repo http://mirrors.aliyun.com/repo/epel-7.repo  
+    #sed -i '/http_proxy/d;$a export http_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile  /etc/profile
+    #sed -i '/https_proxy/d;$a export https_proxy=http://192.168.10.1:7890' /home/vagrant/.bash_profile /etc/profile
     scp -r  /home/vagrant/.ssh /root/
     sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
     SCRIPT
     config.vm.provision "config",type: "shell", inline: $script
-    # config.vm.provision "tunning",type: "shell", path: "k8s-host_tunning.sh",privileged: true
+    #config.vm.provision "tunning",type: "shell", path: "k8s-host_tunning.sh",privileged: true
     # config.vm.provision "shell", path: "update_yum_repo.sh"
     # Make kube ops
   # config.vm.define "hw-ops" do |ops|
@@ -133,11 +138,11 @@ Vagrant.configure("2") do |config|
     #end
 
     # Make the glusterfs cluster, each with DISKS number of drives
-    NO_PROXY=(1..NODES).map {|j| "192.168.0.5#{j}"}
+    NO_PROXY=(0..NODES-1).map {|j| "192.168.0.5#{j}"}
     NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
     (1..NODES).each do |i|
-        config.vm.define "node#{i}.hw" do |node|
-            node.vm.hostname = "node#{i}.hw"
+        config.vm.define "hw-node#{i}" do |node|
+            node.vm.hostname = "hw-node#{i}"
             node.vm.network "public_network", ip: "192.168.0.5#{i}",bridge: "en0: 以太网"
             node.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
             node.vm.network :forwarded_port, guest: 22, host: "224#{i}", auto_correct: true
@@ -162,7 +167,7 @@ Vagrant.configure("2") do |config|
                        vb.customize [ "createmedium", "--filename", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi", "--size", 1024*DISKS_SIZE]
                     end
                     vb.customize [ "storageattach", :id, "--storagectl", "VboxSata", "--port", 3+d, "--device", 0, "--type", "hdd", "--medium", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi" ]  
-                    vb.memory = 4144
+                    vb.memory = 6144
                     vb.cpus = 2
                 end
             end
