@@ -11,8 +11,8 @@ customed_containerd_toml: true
 
 #来自extra_vars
 ntp_server: '{{ntp_server}}'
-use_cache: '{{vagrant_cache|boolean}}'
-container_proxy: '{{use_proxy|boolean}}' 
+use_cache: '{{vagrant_cache|bool}}'
+container_proxy: '{{use_proxy|bool}}' 
 http_proxy: "{{http_proxy}}"
 no_proxy: "{{no_proxy}}"
 myharbor_server: "{{myharbor_server}}"
