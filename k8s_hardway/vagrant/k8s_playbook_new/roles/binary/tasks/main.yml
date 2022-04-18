@@ -1,0 +1,45 @@
+---
+
+- name: "copy client bin for all"
+  copy: src=client/bin dest=/usr/local mode=0755
+  when: "inventory_hostname in groups.k8s_cluster"
+  tags:
+    - client_bin
+
+- name: "copy master bin"
+  copy: src=master/bin dest=/usr/local mode=0755
+  when: "inventory_hostname in groups.master"
+  tags:
+    - master_bin
+
+- name: "copy etcd bin"
+  copy: src=etcd/bin dest=/usr/local mode=0755
+  when: "inventory_hostname in groups.etcd"
+  tags:
+    - etcd_bin
+
+- name: "copy worker bin"
+  copy: src=worker/bin dest=/usr/local mode=0755
+  when: "inventory_hostname in groups.worker"
+  tags:
+    - worker_bin
+
+- block:
+  - name: "unarchive containerd bin for worker"
+    unarchive: src=cri-containerd-cni-1.4.3-linux-amd64.tar.gz  dest=/tmp/
+    args:
+      creates: /tmp/usr    
+    tags: unzip
+  - name: "copy containerd bin for worker"
+    copy: src={{item.src}} dest={{item.dest}} remote_src=yes force=yes
+    loop:
+       - { src: '/tmp/etc/crictl.yaml', dest: '/etc/' }
+       - { src: '/tmp/etc/systemd/system/containerd.service', dest: '/etc/systemd/system/' }
+  - name: copy usr dir
+    shell: "scp -r /tmp/usr /"
+    args: 
+      creates: /usr/local/bin/containerd
+  when: "inventory_hostname in groups.worker"
+  tags:
+    - containerd_bin
+    - worker_bin

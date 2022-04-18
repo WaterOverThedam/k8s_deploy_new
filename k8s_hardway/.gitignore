@@ -9,5 +9,5 @@ heketi.json
  
 vagrant/k8s_playbook_new/roles/worker_svc/files/images/**
 vagrant/k8s_playbook_new/roles/addon/files/images/**
-vagrant/k8s_playbook_new/roles/binary/**
+vagrant/k8s_playbook_new/roles/binary/files
 *.tar.gz
