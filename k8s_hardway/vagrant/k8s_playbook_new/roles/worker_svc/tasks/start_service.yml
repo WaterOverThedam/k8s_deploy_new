@@ -1,0 +1,23 @@
+---
+
+- name: restart containerd
+  systemd: 
+    name: containerd
+    enabled: yes
+    daemon_reload: yes 
+    state: restarted
+
+
+- name: restart kube-proxy
+  systemd: 
+    name: kube-proxy
+    enabled: yes
+    daemon_reload: yes 
+    state: restarted
+
+- name: restart kubelet
+  systemd: 
+    name: kubelet
+    enabled: yes
+    daemon_reload: yes 
+    state: restarted

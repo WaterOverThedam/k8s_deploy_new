@@ -1,0 +1,15 @@
+---
+
+- block:
+  - name: "template {{item.yaml}} to /tmp"
+    template: src="{{item.yaml}}" dest="/tmp/{{item.yaml.split('/')[-1]|replace('.j2','')}}"
+  - name: "apply {{item.name}}"
+    register: result
+    shell: "kubectl apply -f {{item.yaml.split('/')[-1]|replace('.j2','')}}"
+    args:
+      chdir: /tmp
+  - debug: var=result.stdout_lines
+  delegate_to: "{{groups.master[0]}}"
+  run_once: true
+  tags:
+    - "{{item.name}}"

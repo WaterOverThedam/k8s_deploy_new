@@ -1,0 +1,22 @@
+---
+
+- name: clean workspace
+  file: path=/tmp/cert_jsons state=absent
+
+- name: copy cert jsons to workspace
+  copy: src="cert_jsons" dest=/tmp
+
+- name: copy generate_certs.sh to workspace
+  template: src="generate_certs.sh.j2" dest="/tmp/cert_jsons/generate_certs.sh"
+
+
+- name: "execute generate_certs.sh"
+  register: result
+  shell: "sh generate_certs.sh &>/tmp/info.log; cat /tmp/info.log"
+  args:
+    chdir: "/tmp/cert_jsons"
+
+
+- debug: var=result.stdout_lines
+  failed_when: 
+    - result.stdout|regex_search('error', multiline=True, ignorecase=True) or result.stdout|regex_search('no such', multiline=True, ignorecase=True) 

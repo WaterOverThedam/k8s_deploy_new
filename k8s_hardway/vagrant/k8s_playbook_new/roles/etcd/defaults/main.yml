@@ -1,0 +1,6 @@
+---
+
+ETCD_NAME: "{{inventory_hostname}}"
+ETCD_IP: "{{ansible_host}}"
+ETCD_NAMES: "{{ groups.etcd }}"
+ETCD_IPS: "{{ groups.etcd | map('extract',hostvars,['ansible_host']) |list }}"

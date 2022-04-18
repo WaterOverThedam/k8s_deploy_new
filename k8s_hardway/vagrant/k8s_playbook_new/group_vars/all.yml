@@ -1,0 +1,19 @@
+---
+cluster_cidr: "10.200.0" 
+service_cluster_ip_range: "10.233.0"
+cluster_dns: "169.254.25.10"
+#calico_bind_interface: "eth1"
+COREDNS_CLUSTER_IP: "10.233.0.10"
+myharbor_server: "192.168.0.14"
+
+
+container_proxy: false
+
+populate_inventory_to_hosts_file: true
+customed_containerd_toml: true
+
+#来自extra_vars
+ntp_server: '{{ntp_server}}'
+use_cache: '{{vagrant_cache|boolean}}'
+http_proxy: "http://192.168.0.112:7890"
+no_proxy: "192.168.0.51,192.168.0.52,192.168.0.53,127.0.0.1,localhost,myharbor.com"

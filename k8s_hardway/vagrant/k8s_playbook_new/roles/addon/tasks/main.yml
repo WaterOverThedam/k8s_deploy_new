@@ -1,0 +1,44 @@
+---
+
+- block:
+  - name: addon images copy
+    copy: src=images dest=/tmp
+  - name: docker_load
+    import_role:
+      name: worker_svc
+      tasks_from: docker_load.yml
+  tags:
+    - dockerload
+  when: use_cache
+
+- include_tasks: apply.yml
+  loop:
+    - { name: metric-server, yaml: metric-server.yaml.j2 }
+    - { name: dashboard-all-in-one, yaml: dashboard-all-in-one.yaml.j2 }
+  tags:
+    - apply
+
+- block:
+  - name: copy ingress yaml files
+    copy: src=ingress_nginx dest=/tmp/
+  - shell: "sh install.sh"
+    register: ingress_apply
+    args:
+      chdir: /tmp/ingress_nginx/
+  - debug: var=ingress_apply.stdout_lines
+  delegate_to: "{{groups.master[0]}}"
+  run_once: true
+  tags:
+    - ingress
+
+- block:
+  - import_tasks: glusterfs.yml
+    tags:
+      - glusterfs_client
+  - import_tasks: glusterfs_pv.yml
+    delegate_to: "{{groups.master[0]}}"
+    run_once: true
+    tags:
+      - glusterfs_pv
+  tags:
+    - glusterfs

@@ -1,0 +1,8 @@
+---
+
+- include_tasks: "generate_certs.yml"
+  tags:
+  - generate
+- include_tasks: "config_certs.yml"
+  tags:
+  - config

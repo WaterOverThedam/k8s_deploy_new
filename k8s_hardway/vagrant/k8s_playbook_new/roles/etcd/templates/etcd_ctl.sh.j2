@@ -1,0 +1,14 @@
+export ETCDCTL_API=3
+ENDPOINTS={{groups.etcd|map('extract',hostvars,['ansible_host'])|product(['2379'])|map('join',':')|join(',')}}
+{% raw %}
+CERT_DIR=/etc/etcd/
+if [[ $1 =~ "endpoint" ]]||[[ $1 =~ "member" ]];then
+ format="--write-out=table";
+else
+ format="";
+fi
+etcdctl  $*  $format  --endpoints=${ENDPOINTS} \
+--cert=${CERT_DIR}/kubernetes.pem \
+--key=${CERT_DIR}/kubernetes-key.pem \
+--cacert=${CERT_DIR}/ca.pem 
+{% endraw %}

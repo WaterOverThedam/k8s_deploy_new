@@ -1,0 +1,4 @@
+---
+#因hosts无法变动，故取消
+#dependencies:
+#  - {role: etcd, tags: ['etcd'], hosts: etcd}

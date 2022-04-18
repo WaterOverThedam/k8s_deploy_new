@@ -1,0 +1,104 @@
+---
+
+- block:
+  - name: create containerd config dir
+    file: path=/etc/containerd state=absent
+  - name: create containerd config dir
+    file: path=/etc/containerd state=directory
+  - name: custom config containerd
+    copy: src={{item}} dest=/etc/containerd/ 
+    loop:
+      - certs.d
+      - config.toml
+    when: customed_containerd_toml
+
+  - name: custom config containerd
+    template: src=containerd.service.j2 dest=/etc/systemd/system/containerd.service
+  - name: default config containerd
+    register: confing_containerd
+    shell: "containerd config default > /etc/containerd/config.toml"
+    args:
+      creates: "/etc/containerd/config.toml"
+  - debug: var=confing_containerd.stdout_lines
+  tags:
+    - containerd
+
+- block:
+  - name: create pem dir
+    file: path=/etc/kubernetes/ssl/ state=directory recurse=yes
+  - name: copy perm to dir
+    copy: src={{item}} dest=/etc/kubernetes/ssl/ remote_src=yes force=yes
+    loop:
+      - "{{inventory_hostname}}-key.pem"
+      - "{{inventory_hostname}}.pem"
+      - ca.pem 
+      - ca-key.pem
+    tags:
+      - kubelet_perm
+  - name: copy kubeconfig to dir
+    copy: src="{{inventory_hostname}}.kubeconfig" dest=/etc/kubernetes/kubeconfig remote_src=yes force=yes
+  - name: config /etc/kubernetes/kubelet-config.yaml
+    template: src={{item.src}} dest={{item.dest}}
+    loop: 
+      - { src: kubelet-config.yaml.j2, dest: /etc/kubernetes/kubelet-config.yaml }
+      - { src: kubelet.service.j2, dest: /etc/systemd/system/kubelet.service }
+  tags:
+    - kubelet 
+
+- block:
+  - name: create nginx dir
+    file: path={{item}} state=directory recurse=yes
+    loop:
+      - /etc/kubernetes/manifests/
+      - /etc/nginx 
+  - name: config nginx
+    template: src={{item.src}} dest={{item.dest}}
+    loop:
+      - { src: nginx-proxy.yaml.j2, dest: /etc/kubernetes/manifests/nginx-proxy.yaml }
+      - { src: nginx.conf.j2, dest: /etc/nginx/nginx.conf }
+    when: "inventory_hostname not in groups.master"
+  tags:
+    - nginx
+    - nginx-proxy
+
+- block:
+  - name: copy kube-proxy config
+    copy: src=kube-proxy.kubeconfig dest=/etc/kubernetes/ remote_src=yes force=yes
+  - name: config kube-proxy
+    template: src={{item.src}} dest={{item.dest}}
+    loop: 
+      - { src: kube-proxy-config.yaml.j2, dest: /etc/kubernetes/kube-proxy-config.yaml }
+      - { src: kube-proxy.service.j2, dest: /etc/systemd/system/kube-proxy.service }
+  tags:
+    - kube-proxy
+
+- import_tasks: start_service.yml
+  tags: worker_start
+
+- import_role:
+    name: master_svc
+    tasks_from: kubectl.yml
+  tags:
+    - kubectl
+
+- block:
+  - name: basic images copy
+    copy: src=images dest=/tmp
+  - import_tasks: docker_load.yml
+  tags:
+    - dockerload
+  when: use_cache
+
+- include_role:
+    name: addon
+    tasks_from: apply.yml
+  loop:
+    - { name: calico, yaml: calico.yaml.j2 }
+    - { name: coredns, yaml: coredns.yaml.j2 }
+    - { name: nodelocaldns, yaml: nodelocaldns.yaml.j2 }
+  tags:
+    - apply
+    - network
+
+#- meta: flush_handlers
+#  tags: restart_worker 

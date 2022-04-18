@@ -1,0 +1,67 @@
+---
+
+- block:
+  - name: create ssl dir
+    file: path=/etc/kubernetes/ssl state=directory recurse=yes
+  - name: copy certs to ssl dir
+    copy: src={{item}} dest=/etc/kubernetes/ssl remote_src=yes force=yes
+    loop:
+      - ca.pem 
+      - ca-key.pem
+      - kubernetes-key.pem
+      - kubernetes.pem
+      - service-account-key.pem
+      - service-account.pem
+      - proxy-client.pem
+      - proxy-client-key.pem 
+    tags:
+      - certs_copy
+
+- name: create kube-apiserver.service
+  template: src=kube-apiserver.service.j2 dest=/etc/systemd/system/kube-apiserver.service force=yes
+  notify:
+    - restart kube-apiserver 
+  tags:
+    - kube-apiserver  
+    - api
+
+- block:
+  - name: set kube-controller-manager config
+    copy: src=kube-controller-manager.kubeconfig dest=/etc/kubernetes/ remote_src=yes force=yes
+  - name: create kube-apiserver.service
+    template: src=kube-controller-manager.service.j2 dest=/etc/systemd/system/kube-controller-manager.service force=yes
+    notify:
+      - restart kube-controller-manager
+  tags:
+     - kube-controller-manager
+     - cm
+
+- block:
+  - name: set kube-scheduler config
+    copy: src=kube-scheduler.kubeconfig dest=/etc/kubernetes/ remote_src=yes force=yes
+  - name: create kube-apiserver.service
+    template: src=kube-scheduler.service.j2 dest=/etc/systemd/system/kube-scheduler.service force=yes
+    notify:
+      - restart kube-scheduler
+  tags:
+    - kube-scheduler
+    - scheduler
+
+- block:
+  - name: flush_handlers to start systemd svc
+    meta: flush_handlers
+  - name: check service
+    register: check_service
+    shell: "ss -lntp|grep kube"
+  - debug: var=check_service.stdout_lines
+  tags: 
+    - systemd
+
+- import_tasks: kubectl.yml
+  tags:
+    - kubectl
+
+- name: grant aip-server to use kubelet
+  shell: "kubectl create clusterrolebinding kube-apiserver:kubelet-apis --clusterrole=system:kubelet-api-admin --user kubernetes"
+  ignore_errors: true
+  run_once: true

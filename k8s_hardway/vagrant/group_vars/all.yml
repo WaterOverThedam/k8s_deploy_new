@@ -1,0 +1,18 @@
+---
+cluster_cidr: "10.200.0" 
+service_cluster_ip_range: "10.233.0"
+cluster_dns: "169.254.25.10"
+#calico_bind_interface: "eth1"
+COREDNS_CLUSTER_IP: "10.233.0.10"
+
+populate_inventory_to_hosts_file: true
+customed_containerd_toml: true
+
+
+#来自extra_vars
+ntp_server: '{{ntp_server}}'
+use_cache: '{{vagrant_cache|boolean}}'
+container_proxy: '{{use_proxy|boolean}}' 
+http_proxy: "{{http_proxy}}"
+no_proxy: "{{no_proxy}}"
+myharbor_server: "{{myharbor_server}}"

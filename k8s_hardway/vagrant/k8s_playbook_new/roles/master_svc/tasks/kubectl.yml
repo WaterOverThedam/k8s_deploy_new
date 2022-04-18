@@ -1,0 +1,12 @@
+---
+- name: create .kube dir for kubectl
+  file: path=~/.kube state=directory
+- name: copy admin.kubeconfig
+  copy: src=~/admin.kubeconfig dest=~/.kube/config remote_src=yes force=yes
+
+- block:
+  - name: test kubectl
+    register: test_kubectl
+    shell: "kubectl get nodes"
+  - debug: var=test_kubectl.stdout_lines
+  when: "inventory_hostname in groups.master"

@@ -1,0 +1,20 @@
+---
+
+- name: install glusterfs client rpm
+  yum: name="{{item}}" state=present
+  loop:
+    - glusterfs
+    - glusterfs-fuse
+
+
+- block:
+  - name: modprobe for glusterfs
+    register: modprobe
+    shell: 'sh {{item}}'
+    loop:
+      - "modprobe dm_snapshot && lsmod | grep dm_snapshot"
+      - "modprobe dm_mirror && lsmod | grep dm_mirror"
+      - "modprobe dm_thin_pool && lsmod | grep dm_thin_pool"
+  - debug: var=modprobe.stdout_lines
+  tags:
+    - modprobe

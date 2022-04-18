@@ -1,0 +1,50 @@
+- hosts: all
+  gather_facts: false
+  roles:
+   - preinstall
+  tags:
+   - preinstall
+
+- hosts: master[0]
+  gather_facts: false
+  roles:
+    - certs
+  tags:
+    - certs
+
+- hosts: etcd
+  gather_facts: false
+  roles:
+    - etcd
+  tags:
+    - etcd
+
+- hosts: master
+  gather_facts: false
+  roles:
+    - master_svc
+  tags:
+    - master_svc
+    - master
+
+- hosts: worker
+  gather_facts: false
+  roles:
+    - worker_svc
+  tags:
+    - worker_svc
+    - worker
+
+- hosts: worker
+  gather_facts: false
+  roles:
+    - addon
+  tags:
+    - addon
+
+- hosts: all
+  gather_facts: false
+  roles:
+    - smoke_test
+  tags:
+    - test

@@ -1,0 +1,25 @@
+---
+
+
+- include_role:
+    name: addon
+    tasks_from: apply.yml
+  loop:
+    - { name: nginx-ds, yaml: "{{role_path}}/templates/nginx-ds.yaml" }
+    - { name: pod-nginx, yaml: "{{role_path}}/templates/pod-nginx.yaml" }
+  tags:
+    - apply
+
+- include_tasks: shell.yml
+  loop:
+    - kubectl exec nginx -- cat /etc/resolv.conf 
+    - kubectl exec nginx -- curl -I -s $(kubectl get pods -l app=nginx-ds -o jsonpath="{.items[0].status.podIP}")
+    - kubectl exec nginx -- curl -I -s nginx-ds 
+    - kubectl exec -it $(kubectl get pods -l app=nginx-ds -o jsonpath="{.items[0].metadata.name}") -- nginx -v
+    - kubectl logs nginx
+  tags:
+    - pod_test
+
+- import_tasks: pv_test.yml 
+  tags:
+    - pv_test

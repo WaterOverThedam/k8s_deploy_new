@@ -1,0 +1,29 @@
+---
+
+- import_role:
+    name: binary
+
+- import_tasks: hosts.yml
+  tags:
+  - hosts
+
+- block:
+  - copy: src=env.sh dest=/tmp/
+  - name: run env.sh
+    register: env
+    shell: sh /tmp/env.sh
+  - debug: var=env.stdout_lines
+
+- name: install basic package
+  yum: name="{{item}}" state=present
+  loop:
+    - chrony
+    - vim
+    - conntrack-tools 
+
+- name: config chrony
+  template: src=chrony.conf.j2 dest=/etc/chrony.conf
+  when: "ntp_server|default('')!=''"
+
+- name: restart chrony
+  systemd: name=chronyd state=restarted

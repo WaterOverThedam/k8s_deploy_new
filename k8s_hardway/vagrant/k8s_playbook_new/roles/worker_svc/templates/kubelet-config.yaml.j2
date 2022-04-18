@@ -1,0 +1,28 @@
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: true
+  x509:
+    clientCAFile: "/etc/kubernetes/ssl/ca.pem"
+authorization:
+  mode: Webhook
+clusterDomain: "cluster.local"
+clusterDNS:
+  - "{{cluster_dns}}"
+podCIDR: "{{cluster_cidr}}.0/16"
+address: {{ansible_host}}
+readOnlyPort: 0
+staticPodPath: /etc/kubernetes/manifests
+healthzPort: 10248
+healthzBindAddress: 127.0.0.1
+kubeletCgroups: /systemd/system.slice
+resolvConf: "/etc/resolv.conf"
+runtimeRequestTimeout: "15m"
+kubeReserved:
+  cpu: 200m
+  memory: 512M
+tlsCertFile: "/etc/kubernetes/ssl/{{inventory_hostname}}.pem"
+tlsPrivateKeyFile: "/etc/kubernetes/ssl/{{inventory_hostname}}-key.pem"

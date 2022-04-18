@@ -1,0 +1,24 @@
+---
+
+- name: get heketi server IP
+  register: heketi_server
+  shell: 'kubectl get svc -l glusterfs=heketi-service -o jsonpath="{.items[0].spec.clusterIP}"'
+  tags:
+    - heketi_server
+
+- include_role:
+    name: addon
+    tasks_from: apply.yml
+  loop:
+    - { name: glusterfs-sc, yaml: "{{role_path}}/templates/glusterfs-storage-class.yaml.j2" }
+    - { name: glusterfs-pvc, yaml: "{{role_path}}/templates/glusterfs-pvc.yaml" }
+    - { name: web-deploy, yaml: "{{role_path}}/templates/web-deploy.yaml" }
+  tags:
+    - pv_apply
+
+- include_tasks: shell.yml
+  loop:
+    - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[0].metadata.name}') -- bash -c "echo 'hello world'>/mooc-data/test.log" 
+    - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[1].metadata.name}') -- cat /mooc-data/test.log 
+  tags:
+    - pv_test_res

@@ -1,0 +1,7 @@
+- copy: src=load_images.sh dest=/tmp/images/
+- name: docker load
+  register: docker_load
+  shell: "sh load_images.sh"
+  args:
+    chdir: /tmp/images
+- debug: var=docker_load.stdout_lines

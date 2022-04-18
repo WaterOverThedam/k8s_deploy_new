@@ -1,0 +1,44 @@
+---
+
+
+- name: copy yaml to remote
+  copy: src=glusterfs_hekti dest=/tmp
+
+- block:
+  - name: set nodes param
+    register: nodes
+    set_fact:
+        node:
+          hostnames: 
+            manage:
+              - "{{item.key}}"
+            storage:
+              - "{{item.value.ansible_host}}"
+          zone: 1
+        devices:
+        - name: "{{glusterfs_disk}}"
+          destroydata: false
+    with_dict: "{{hostvars}}"
+  - name: set clusters param
+    set_fact:
+      param:
+        clusters:
+        - nodes: "{{ nodes.results|json_query('[*].ansible_facts')|list }}"
+  - debug: var=param.clusters
+
+- name: write param to topology.json file
+  copy: 
+    content: "{{ param | to_nice_json }}" 
+    dest: "/tmp/glusterfs_hekti/topology.json"
+
+- block:
+  - name: heketi init glusterfs
+    register: heketi_init
+    shell: 'sh init.sh'
+    args:
+      chdir: /tmp
+  - debug: var=heketi_init.stdout_lines
+  tags:
+    - heketi_init
+
+
