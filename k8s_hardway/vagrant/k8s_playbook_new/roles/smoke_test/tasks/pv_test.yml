@@ -10,6 +10,7 @@
     name: addon
     tasks_from: apply.yml
   loop:
+    - { name: heketi-secret, yaml: "{{role_path}}/templates/heketi-secret.yml"}
     - { name: glusterfs-sc, yaml: "{{role_path}}/templates/glusterfs-storage-class.yaml.j2" }
     - { name: glusterfs-pvc, yaml: "{{role_path}}/templates/glusterfs-pvc.yaml" }
     - { name: web-deploy, yaml: "{{role_path}}/templates/web-deploy.yaml" }
@@ -18,6 +19,7 @@
 
 - include_tasks: shell.yml
   loop:
+    - crictl pull myharbor.com/kubernetes/springboot-web-demo:v1
     - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[0].metadata.name}') -- bash -c "echo 'hello world'>/mooc-data/test.log" 
     - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[1].metadata.name}') -- cat /mooc-data/test.log 
   tags:

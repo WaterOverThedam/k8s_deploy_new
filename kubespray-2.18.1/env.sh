@@ -23,11 +23,12 @@ alias docker="nerdctl -n k8s.io"
 }
 kubectl version &>/dev/null && [ $(grep -c kubectl /etc/bashrc) -eq 0 ] && {
 echo '
+source <(kubectl completion bash)
 alias k=kubectl
+complete -F __start_kubectl k
 alias kk="kubectl -n kube-system"
 alias docker="nerdctl -n k8s.io"
 export do="--dry-run=client -o yaml"
-complete -F __start_kubectl k
 '>>/etc/bashrc
 }
 
