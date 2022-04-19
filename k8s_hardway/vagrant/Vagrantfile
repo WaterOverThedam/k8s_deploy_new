@@ -106,7 +106,7 @@ Vagrant.configure("2") do |config|
                     # "-t limit_remove", 
                     #  "-v"
                     ]       
-                    ansible.playbook = "k8s_playbook_new.yml"
+                    ansible.playbook = "k8s_playbook_new/cluster.yml"
                     ansible.groups = {
                         "ops" => ["hw_ops"],
                         "nodes" => (0..NODES-1).map {|j| "hw_node#{j}"},

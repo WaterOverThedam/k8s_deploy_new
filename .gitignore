@@ -1,5 +1,6 @@
 ﻿test/
 backup/
+k8s_hardway_copy/
 .DS_Store
 cka-example-environments-master
 k8s-cluster.code-workspace
