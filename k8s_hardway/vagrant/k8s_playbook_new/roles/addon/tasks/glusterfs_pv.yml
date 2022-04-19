@@ -3,6 +3,8 @@
 
 - name: copy yaml to remote
   copy: src=glusterfs_hekti dest=/tmp
+  tags:
+    - glusterfs_install_pkg
 
 - block:
   - name: set nodes param
@@ -31,14 +33,33 @@
     content: "{{ param | to_nice_json }}" 
     dest: "/tmp/glusterfs_hekti/topology.json"
 
+
 - block:
-  - name: heketi init glusterfs
+  - name: apply glusterfs and heketi deployment
+    register: glusterfs_heketi_apply
+    shell: 'sh apply.sh'
+    args:
+      chdir: /tmp/glusterfs_hekti/
+  - debug: var=glusterfs_heketi_apply.stdout_lines
+  tags:
+    - glusterfs_heketi_apply
+
+- block:
+  - name: use heketi to init glusterfs
     register: heketi_init
     shell: 'sh init.sh'
     args:
-      chdir: /tmp
+      chdir: /tmp/glusterfs_hekti/
   - debug: var=heketi_init.stdout_lines
   tags:
     - heketi_init
 
-
+- block:
+  - name: glusterfs healthy check
+    register: glusterfs_check
+    shell: 'sh check.sh'
+    args:
+      chdir: /tmp/glusterfs_hekti/
+  - debug: var=glusterfs_check.stdout_lines
+  tags:
+    - glusterfs_check
