@@ -6,3 +6,13 @@
  tar -xf files/vagrant_k8s_playbook_new_roles_addon_files_images.tar.gz
  tar -xf files/vagrant_k8s_playbook_new_roles_binary_files.tar.gz
  tar -xf files/vagrant_k8s_playbook_new_roles_worker_svc_files_images.tar.gz
+
+ 二、安装
+ 方法一、vagrant+virtualbox环境下，通过vagrant和vagrant ansible插件部署
+ sh up.sh
+
+ 方法二、普通环境下，直接ansible命令部署
+ 1）修改hosts.ini;确定变量信息
+ 2）执行playbook
+ cd k8s_playbook_new 
+ ansbile-playbook -i hosts.ini -e '[变量列表]'

@@ -1,3 +1,6 @@
+#处理sudo丢失环境变量 
+export PATH=$PATH:/usr/local/bin
+
 MASTERS="{{groups.master|join(' ')}}"
 WORKERS="{{groups.worker|join(' ')}}"
 {% raw %}
@@ -91,10 +94,12 @@ kubectl config use-context default --kubeconfig=admin.kubeconfig
 echo '6. 分发配置文件 ...'
 echo '6.1把kubelet和kube-proxy需要的kubeconfig配置分发到每个worker节点'
 for instance in ${WORKERS}; do
+    echo "to $instance"
     scp -o StrictHostKeyChecking=no ${instance}.kubeconfig admin.kubeconfig kube-proxy.kubeconfig ${instance}:~/
 done
 echo '6.2 把kube-controller-manager和kube-scheduler需要的kubeconfig配置分发到master节点'
 for instance in ${MASTERS}; do
+    echo "to $instance"
     scp -o StrictHostKeyChecking=no admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig ${instance}:~/
 done
 {% endraw %}

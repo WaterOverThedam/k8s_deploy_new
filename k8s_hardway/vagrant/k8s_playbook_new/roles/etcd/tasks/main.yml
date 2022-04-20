@@ -8,7 +8,7 @@
     - {name: /var/lib/etcd, mode: 700}
 
 - name: copy config
-  copy: src={{item}} dest=/etc/etcd/ remote_src=yes force=yes
+  copy: src=~/{{item}} dest=/etc/etcd/ remote_src=yes force=yes
   loop:
     - ca.pem
     - kubernetes-key.pem

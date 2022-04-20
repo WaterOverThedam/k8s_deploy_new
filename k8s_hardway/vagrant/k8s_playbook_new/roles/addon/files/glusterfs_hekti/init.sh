@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export PATH=$PATH:/usr/local/bin
 kubectl get pod |grep gluster || {
   echo 'no gluster pod'
   exit 1

@@ -3,4 +3,4 @@
 # apiserver实例数
 APISERVER_COUNT: 2
 # etcd节点
-ETCD_ENDPOINTS: "{{ groups.etcd | map('extract',hostvars,['ansible_host']) |list }}"
+ETCD_ENDPOINTS: "{{ groups.etcd | map('extract',hostvars,['ip']) |list }}"

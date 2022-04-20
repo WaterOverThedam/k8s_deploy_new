@@ -9,11 +9,19 @@ USE_PROXY = true
 DISK_DIR = "./volumes"
 LIBVIRT_DISK_CACHE = "default"
 NETWORK_IP_PREFIX = "192.168.0.6"
+HOST_NAME_TPL = "node%01d.hw.cn"
 SETTINGS = {}
+IP_ADDRS = {}
+host_vars = {}
 SETTINGS['ssh_path'] = "~/.ssh"
 SETTINGS['authorize'] = "#{SETTINGS['ssh_path']}/id_rsa.pub"
 SETTINGS['key'] = "#{SETTINGS['ssh_path']}/id_rsa"
+NTP_SERVER = "192.168.0.14"
+REGISTRY_SERVER = "192.168.0.14"
+PORXY_ADDR="http://192.168.0.112:7890"
 
+NO_PROXY=(1..NODES).map {|j| "#{NETWORK_IP_PREFIX}#{j}"}
+NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
 
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
@@ -58,17 +66,13 @@ Vagrant.configure("2") do |config|
     scp -r  /home/vagrant/.ssh /root/
     sed -i '/PasswordAuthentication/s/no/yes/g' /etc/ssh/sshd_config; systemctl restart sshd
     SCRIPT
-    config.vm.provision "config",type: "shell", inline: $script
-    #config.vm.provision "tunning",type: "shell", path: "k8s-host_tunning.sh",privileged: true
-
+    config.vm.provision "config",type: "shell", inline: $script, privileged: true
     
-    NO_PROXY=(0..NODES-1).map {|j| "#{NETWORK_IP_PREFIX}#{j}"}
-    NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
-    PORXY="http://192.168.0.112:7890"
 
     (1..NODES).each do |i|
-        config.vm.define "hw-node#{i}" do |node|
-            node.vm.hostname = "hw-node#{i}"
+        IP_ADDRS["hw-node#{i}"] = "#{NETWORK_IP_PREFIX}#{i}"
+        config.vm.define vm_name = HOST_NAME_TPL % [i] do |node|
+            node.vm.hostname = vm_name
             node.vm.network "public_network", ip: "#{NETWORK_IP_PREFIX}#{i}",bridge: "en0: 以太网"
             node.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
             node.vm.network :forwarded_port, guest: 22, host: "225#{i}", auto_correct: true
@@ -81,14 +85,14 @@ Vagrant.configure("2") do |config|
             # Settings for Virtualbox
             # 每个node执行一次
             node.vm.provider :virtualbox do |vb|
-                unless File.exist?("#{DISK_DIR}/hw-disk-#{i}-0.vdi")
+                unless File.exist?("#{DISK_DIR}/hw-disk-#{i}-1.vdi")
                     #vb.customize ["storagectl", :id,"--name", "VboxSata", "--remove"]
                     vb.customize ["storagectl", :id,"--name", "VboxSata", "--add", "sata"]
                 end
             end
             # 每个disk执行一次
             # To make the glusterfs cluster, each with DISKS number of drives
-            (0..DISKS-1).each do |d|
+            (1..DISKS).each do |d|
                 node.vm.provider :virtualbox do |vb|
                     unless File.exist?("#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi")
                        vb.customize [ "createmedium", "--filename", "#{DISK_DIR}/hw-disk-#{i}-#{d}.vdi", "--size", 1024*DISKS_SIZE]
@@ -98,26 +102,37 @@ Vagrant.configure("2") do |config|
                     vb.cpus = 2
                 end
             end
+            host_vars[vm_name] = {
+                "ip": "#{NETWORK_IP_PREFIX}#{i}"
+            } 
             if i == 1 
-               ops.vm.provision :ansible do |ansible|
-                    ansible.verbose = true
+               node.vm.provision :ansible do |ansible|
+                    #ansible.verbose = true
+                    ansible.host_key_checking = false
+                    #sudo问题很多，不建议使用
+                    #ansible.become = true
                     ansible.limit = "all"
+                    ansible.host_vars = host_vars
                     ansible.raw_arguments  = [
-                    # "-t limit_remove", 
-                    #  "-v"
+                     "-t preinstall,certs,etcd"
                     ]       
                     ansible.playbook = "k8s_playbook_new/cluster.yml"
                     ansible.groups = {
-                        "ops" => ["hw_ops"],
-                        "nodes" => (0..NODES-1).map {|j| "hw_node#{j}"},
+                        "master" => (1..NODES-1).map {|i| HOST_NAME_TPL % [i]},
+                        "worker" => (1..NODES).map {|i| HOST_NAME_TPL % [i]},
+                        "etcd" => (1..NODES).map {|i| HOST_NAME_TPL % [i]},
+                        "k8s_cluster:children" => ["master", "worker"],
                     }
                     ansible.extra_vars = {
-                        "http_proxy"  => PORXY,
+                        "http_proxy"  => PORXY_ADDR,
                         "no_proxy" => NO_PROXY,
                         "use_proxy" => USE_PROXY,
                         "vagrant_cache" => ENV['VAGRANT_CACHE'] ? ENV['VAGRANT_CACHE'] : CACHE,
-                        "ntp_server"  => "192.168.0.14"
-                        "myharbor_server" => "192.168.0.14"
+                        "ntp_server"  => NTP_SERVER,
+                        "myharbor_server" => REGISTRY_SERVER,
+                         #ansible执行需要root
+                        "ansible_user" => "root",
+                        "ip_addrs" => IP_ADDRS
                    }
                end
             end

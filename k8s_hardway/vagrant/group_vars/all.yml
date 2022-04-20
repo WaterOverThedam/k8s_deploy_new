@@ -16,3 +16,4 @@ container_proxy: '{{use_proxy|bool}}'
 http_proxy: "{{http_proxy}}"
 no_proxy: "{{no_proxy}}"
 myharbor_server: "{{myharbor_server}}"
+

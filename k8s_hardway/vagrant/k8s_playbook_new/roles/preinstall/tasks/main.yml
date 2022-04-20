@@ -11,8 +11,10 @@
   - copy: src=env.sh dest=/tmp/
   - name: run env.sh
     register: env
-    shell: sh /tmp/env.sh
+    shell: sudo bash /tmp/env.sh
   - debug: var=env.stdout_lines
+  tags:
+    - env.sh
 
 - name: install basic package
   yum: name="{{item}}" state=present

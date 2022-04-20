@@ -15,7 +15,7 @@
   shell: "sh generate_certs.sh &>/tmp/info.log; cat /tmp/info.log"
   args:
     chdir: "/tmp/cert_jsons"
-
+  failed_when: "result.stdout|regex_search('not found', multiline=True, ignorecase=True)"
 
 - debug: var=result.stdout_lines
   failed_when: 

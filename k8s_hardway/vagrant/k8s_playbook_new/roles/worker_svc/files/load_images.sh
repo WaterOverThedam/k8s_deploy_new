@@ -1,5 +1,6 @@
 #/bin/bash
 
+export PATH=$PATH:/usr/local/bin
 docker="nerdctl -n k8s.io"
 
 if [ -z $1 ];then

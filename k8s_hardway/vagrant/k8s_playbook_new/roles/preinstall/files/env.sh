@@ -11,16 +11,19 @@ systemctl stop firewalld && systemctl disable firewalld
 iptables -F && iptables -X && iptables -F -t nat && iptables -X -t nat && iptables -P FORWARD ACCEPT
 
 #环境变量
-grep /usr/local/bin /etc/bashrc &>/dev/null || {
+grep sudo /etc/bashrc &>/dev/null || {
 echo '
 export PATH=$PATH:/usr/local/bin
+#alias sudo="sudo env PATH=$PATH"
 '>>/etc/bashrc
 }
+source /etc/bashrc
+
 nerdctl --version &>/dev/null && [ $(grep -c nerdctl /etc/bashrc) -eq 0 ] && {
 echo '
 alias docker="nerdctl -n k8s.io"
 '>>/etc/bashrc 
-}
+} 
 kubectl --help &>/dev/null && [ $(grep -c kubectl /etc/bashrc) -eq 0 ] && {
 echo '
 source <(kubectl completion bash)

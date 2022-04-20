@@ -1,3 +1,6 @@
+#处理sudo丢失环境变量 
+export PATH=$PATH:/usr/local/bin
+
 #生成根证书和私钥------------------------------------------------  
 echo 'root pem...'
 cfssl gencert -initca ca-csr.json | cfssljson -bare ca
@@ -14,7 +17,7 @@ cfssl gencert \
 #生成kubelet客户端证书和私钥--------------------------------------  
 echo 'kubelet pem...'
 WORKERS=({{groups.worker|join(" ")}})
-WORKER_IPS=({{ groups.worker | map('extract', hostvars, ['ansible_host']) | join(' ') }})
+WORKER_IPS=({{ groups.worker | map('extract', hostvars, ['ip']) | join(' ') }})
 
 ##生成所有worker节点的证书配置
 {% raw %}
@@ -99,7 +102,7 @@ echo 'kube-apiserver pem...'
 ##apiserver的service ip地址（一般是svc网段的第一个ip）
 KUBERNETES_SVC_IP={{service_cluster_ip_range}}.1
 ##所有的master内网ip，逗号分隔（云环境可以加上master公网ip以便支持公网ip访问）
-MASTER_IPS={{ (groups.master+groups.etcd) | unique |list | map('extract', hostvars, ['ansible_host']) | join(',') }}
+MASTER_IPS={{ (groups.master+groups.etcd) | unique |list | map('extract', hostvars, ['ip']) | join(',') }}
 
 {% raw %}
 cfssl gencert \
@@ -113,15 +116,16 @@ cfssl gencert \
   
 #分发worker节点需要的证书和私钥
 for instance in ${WORKERS[@]}; do
+  echo "to $instance"
   scp -o StrictHostKeyChecking=no ca.pem ${instance}-key.pem ${instance}.pem root@${instance}:~/
 done
 
 #分发master节点需要的证书和私钥
 ##注意：由于下面分发的证书即包含了etcd的证书也包含了k8s主节点的证书。 所以 MASTER_IPS 中必须包含所有 master 节点以及 etcd 节点。如果没有包含所有etcd节点的证书，需要重新定义，逗号分隔
-
 OIFS=$IFS
 IFS=','
 for instance in ${MASTER_IPS}; do
+  echo "to $instance"
   scp -o StrictHostKeyChecking=no ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
     service-account-key.pem service-account.pem proxy-client.pem proxy-client-key.pem root@${instance}:~/
 done
