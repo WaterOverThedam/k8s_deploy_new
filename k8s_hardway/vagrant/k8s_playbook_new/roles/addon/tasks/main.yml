@@ -21,8 +21,8 @@
 - name: show dashboard login info
   include_tasks: shell.yml
   loop: 
-    - "echo https://{{ip}}:$(kubectl -n kubernetes-dashboard get svc/kubernetes-dashboard -o jsonpath='{.spec.ports[0].nodePort}'')"
-    - kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/kubernetes-dashboard -o jsonpath="{.secrets[0].name}") -o go-template='{{printf "%s\n" (.data.token|base64decode)}}'
+    - "echo https://{{ip}}:$(kubectl -n kubernetes-dashboard get svc/kubernetes-dashboard -o jsonpath='{.spec.ports[0].nodePort}')"
+    - kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get sa/kubernetes-dashboard -o jsonpath='{.secrets[0].name}')|awk '/token:/{print $NF}'
   tags:
     - dashboard-entry
 
