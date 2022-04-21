@@ -16,7 +16,7 @@
 - meta: flush_handlers
 
 - include_role:
-    name: smote_test
+    name: smoke_test
     tasks_from: shell.yml
   vars:
     exec_host: "{{ groups.worker[-1] }}"
