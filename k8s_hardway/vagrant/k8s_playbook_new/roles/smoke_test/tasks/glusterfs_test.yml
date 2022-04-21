@@ -28,9 +28,9 @@
   include_role:
     name: addon
     tasks_from: get_svc_ip.yml
-   vars:
-     resource: "pod"
-     label: "app=web-deploy" 
+  vars:
+    resource: "pod"
+    label: "app=web-deploy" 
 - wait_for: port=80 host="{{svc_ip.stdout}}" delay=6 timeout=20
 - include_role:
     name: addon
