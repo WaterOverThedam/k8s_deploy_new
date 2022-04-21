@@ -1,5 +1,5 @@
 export ETCDCTL_API=3
-ENDPOINTS={{groups.etcd|map('extract',hostvars,['ansible_host'])|product(['2379'])|map('join',':')|join(',')}}
+ENDPOINTS={{groups.etcd|map('extract',hostvars,['ip'])|product(['2379'])|map('join',':')|join(',')}}
 {% raw %}
 CERT_DIR=/etc/etcd/
 if [[ $1 =~ "endpoint" ]]||[[ $1 =~ "member" ]];then

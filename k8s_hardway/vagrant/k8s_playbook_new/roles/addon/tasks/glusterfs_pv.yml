@@ -15,7 +15,7 @@
             manage:
               - "{{item.key}}"
             storage:
-              - "{{item.value.ansible_host}}"
+              - "{{item.value.ip}}"
           zone: 1
         devices:
         - name: "{{glusterfs_disk}}"

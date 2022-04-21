@@ -17,3 +17,6 @@ http_proxy: "{{http_proxy}}"
 no_proxy: "{{no_proxy}}"
 myharbor_server: "{{myharbor_server}}"
 
+#主机网络信息
+host_ip_range: hostvars[groups.worker[-1]].ip.split('.')[0:3]|join('.')
+host_prefix: '24'

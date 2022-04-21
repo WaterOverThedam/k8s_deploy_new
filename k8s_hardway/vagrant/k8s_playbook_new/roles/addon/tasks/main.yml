@@ -42,3 +42,7 @@
       - glusterfs_pv
   tags:
     - glusterfs
+
+- import_tasks: nfs_pv.yml
+  tags:
+    - nfs_pv

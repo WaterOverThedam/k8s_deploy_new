@@ -1,0 +1,3 @@
+{% for item in nfs_data_dirs %}
+{{item}} 192.168.133.0/24(rw,sync,all_squash,anonuid=1000,anongid=1000)
+{% endfor %}

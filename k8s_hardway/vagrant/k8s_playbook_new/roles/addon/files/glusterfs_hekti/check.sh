@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export PATH=$PATH:/usr/local/bin
 
 HEKETI_POD=$(kubectl get pod -l name=heketi -o jsonpath="{.items[0].metadata.name}") && \
 echo "heketi check ..." && \

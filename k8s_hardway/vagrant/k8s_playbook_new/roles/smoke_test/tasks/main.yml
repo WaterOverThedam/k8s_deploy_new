@@ -20,6 +20,9 @@
   tags:
     - pod_test
 
-- import_tasks: pv_test.yml 
+- import_tasks: glusterfs_test.yml 
   tags:
-    - pv_test
+    - glusterfs_test
+- import_tasks: nfs_test.yml 
+  tags:
+    - nfs_test

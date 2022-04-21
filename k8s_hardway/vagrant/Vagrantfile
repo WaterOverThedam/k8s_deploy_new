@@ -3,7 +3,7 @@
 
 NODES = 3
 DISKS = 2
-DISKS_SIZE=10
+DISKS_SIZE=40
 CACHE = true
 USE_PROXY = true
 DISK_DIR = "./volumes"

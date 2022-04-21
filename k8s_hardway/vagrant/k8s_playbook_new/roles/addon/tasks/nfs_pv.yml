@@ -1,0 +1,26 @@
+---
+
+
+- name: install nfs rpm
+  yum: name="nfs-utils,rpcbind" state=present
+
+- name: nfs config
+  template: src="{{item.src}}" dest="{{item.dest}}"
+  loop:
+    - { src: nfs.j2, dest: /etc/sysconfig/nfs }
+    - { src: exports.j2, dest: /etc/exports }
+  notify:
+    - restart nfs
+    - restart rpcbind
+
+- meta: flush_handlers
+
+- include_role:
+    name: smote_test
+    tasks_from: shell.yml
+  vars:
+    exec_host: "{{ groups.worker[-1] }}"
+  loop: 
+    - "showmount -e {{hostvars[groups.worker[-1]].ip}}"
+  tags:
+    - nfs_check

@@ -13,7 +13,7 @@ clusterDomain: "cluster.local"
 clusterDNS:
   - "{{cluster_dns}}"
 podCIDR: "{{cluster_cidr}}.0/16"
-address: {{ansible_host}}
+address: {{ip}}
 readOnlyPort: 0
 staticPodPath: /etc/kubernetes/manifests
 healthzPort: 10248

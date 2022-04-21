@@ -1,3 +1,8 @@
 ---
 
 glusterfs_disk: "/dev/sdb"
+nfs_data_dirs:
+  - /data/k8s
+  - /data/pv
+  - /data/sc
+

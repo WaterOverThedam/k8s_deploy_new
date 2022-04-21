@@ -1,0 +1,17 @@
+
+- include_role:
+    name: addon
+    tasks_from: apply.yml
+  loop:
+    - { name: nfs_apply_pv, yaml: nfs_pv.yml.j2 }
+    - { name: dp-nfs-pvc.yaml, yaml: dp-nfs-pvc.yaml.j2 }
+  tags:
+    - nfs_apply
+
+- include_tasks: shell.yml
+  loop:
+    - crictl pull busybox
+    - kubectl -n test exec -it $(kubectl -n test get pod -l app=busybox -o jsonpath='{.items[0].metadata.name}') -- sh -c "echo 'hello world'>/data/test.log"
+    - kubectl -n test exec -it $(kubectl -n test get pod -l app=busybox -o jsonpath='{.items[1].metadata.name}') -- cat /data/test.log
+  tags:
+    - nfs_test_res
