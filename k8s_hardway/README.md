@@ -9,10 +9,11 @@
 
  二、安装
  前提： 操作命令主机先安装ansible软件 
+ cd k8s_playbook_new/
  方法一、vagrant+virtualbox环境下，通过vagrant和vagrant ansible插件部署
  cd vagrant && sh up.sh
 
  方法二、普通环境下，直接ansible命令部署
  1）修改hosts.ini;group_vars/all.yml的全局变量
  2）执行playbook
- ansbile-playbook -i hosts.ini k8s_playbook_new/cluster.yml  
+ ansbile-playbook -i hosts.ini cluster.yml  
