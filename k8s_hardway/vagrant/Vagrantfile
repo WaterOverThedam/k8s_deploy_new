@@ -114,7 +114,8 @@ Vagrant.configure("2") do |config|
                     ansible.limit = "all"
                     ansible.host_vars = host_vars
                     ansible.raw_arguments  = [
-                     "-t preinstall,certs,etcd"
+                    #用于单跑role
+                    #  "-t preinstall,certs,etcd"
                     ]       
                     ansible.playbook = "k8s_playbook_new/cluster.yml"
                     ansible.groups = {
