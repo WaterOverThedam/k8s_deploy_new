@@ -17,27 +17,29 @@
   tags:
     - glusterfs_apply
 
-- include_role:
-    name: addon
-    tasks_from: shell.yml
-  loop:
-    - crictl pull myharbor.com/kubernetes/springboot-web-demo:v1
-  tags:
-    - glusterfs_test_image
-- include_role:
-    name: addon
-    tasks_from: get_svc_ip.yml
+- block:
   run_once: true
-  vars:
-    name: "web-depoy pod"
-    resource: "pod"
-    label: "app=web-deploy" 
-- wait_for: port=8080 host="{{svc_ip.stdout}}" delay=6 timeout=20
-- include_role:
-    name: addon
-    tasks_from: shell.yml
-  loop:
-    - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[0].metadata.name}') -- bash -c "echo 'hello world'>/mooc-data/test.log" 
-    - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[1].metadata.name}') -- cat /mooc-data/test.log 
-  tags:
-    - glusterfs_test_res
+  - include_role:
+      name: addon
+      tasks_from: shell.yml
+    loop:
+      - crictl pull myharbor.com/kubernetes/springboot-web-demo:v1
+    tags:
+      - glusterfs_test_image
+  - include_role:
+      name: addon
+      tasks_from: get_svc_ip.yml
+    vars:
+      name: "web-depoy pod"
+      resource: "pod"
+      label: "app=web-deploy" 
+  - wait_for: port=8080 host="{{svc_ip.stdout}}" delay=6 timeout=20
+  - include_role:
+      name: addon
+      tasks_from: shell.yml
+    loop:
+      - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[0].metadata.name}') -- bash -c "echo 'hello world'>/mooc-data/test.log" 
+      - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[1].metadata.name}') -- cat /mooc-data/test.log 
+    tags:
+      - glusterfs_test_res
+  
