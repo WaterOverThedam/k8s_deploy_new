@@ -44,10 +44,13 @@
   tags:
     - glusterfs_heketi_apply
 
-
+ wait_for:
+    port: 18080
+    delay: 10  
+    
 - block:
   - import_tasks: get_heketi_ip.yml
-  - wait_for: port=8000 host="heketi_server.stdout" delay=10
+  - wait_for: port=80 host="heketi_server.stdout" delay=8 timeout=20
   - name: use heketi to init glusterfs
     register: heketi_init
     shell: 'sh init.sh'
