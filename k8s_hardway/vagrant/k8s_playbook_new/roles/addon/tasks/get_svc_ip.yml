@@ -1,4 +1,4 @@
-- name: get svc IP
+- name: "get {{name|default('heketi server')}} IP"
   register: svc_ip
   shell: |
     {% if resource|default('svc')=='svc' %} 
