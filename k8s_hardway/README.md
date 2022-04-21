@@ -1,7 +1,7 @@
 # 一、 准备镜像和二进制压缩包
 ##  1）files镜像和二进制压缩下载地址：
      链接: https://pan.baidu.com/s/1c12oQMg1qe4Is6I53UxhDQ 提取码: a9as 
-##  2）下载好后，tar包移入files文件夹
+##  2）下载好后，tar包移入程序目录新建的files文件夹
 ##  3）当前目录执行
 ```bash
  tar -xf files/vagrant_k8s_playbook_new_roles_addon_files_images.tar.gz

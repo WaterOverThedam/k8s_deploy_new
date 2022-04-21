@@ -2,10 +2,7 @@
 *.sw?
 *.retry
 */.vagrant/**
-topology.json
-heketi-storage.json
-ssh-config
-heketi.json
+files/* 
  
 vagrant/k8s_playbook_new/roles/worker_svc/files/images/**
 vagrant/k8s_playbook_new/roles/addon/files/images/**
