@@ -48,3 +48,4 @@
     - smoke_test
   tags:
     - test
+    - smoke_test
