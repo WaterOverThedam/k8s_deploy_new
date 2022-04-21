@@ -8,11 +8,11 @@
  tar -xf files/vagrant_k8s_playbook_new_roles_worker_svc_files_images.tar.gz
 
  二、安装
+ 前提： 操作命令主机先安装ansible软件 
  方法一、vagrant+virtualbox环境下，通过vagrant和vagrant ansible插件部署
- sh up.sh
+ cd vagrant && sh up.sh
 
  方法二、普通环境下，直接ansible命令部署
- 1）修改hosts.ini;确定变量信息
+ 1）修改hosts.ini;group_vars/all.yml的全局变量
  2）执行playbook
- cd k8s_playbook_new 
- ansbile-playbook -i hosts.ini -e '[变量列表]'
+ ansbile-playbook -i hosts.ini k8s_playbook_new/cluster.yml  
