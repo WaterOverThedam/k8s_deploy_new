@@ -17,3 +17,11 @@
  1）修改hosts.ini;修改group_vars/all.yml，替换来自extra_vars变量
  2）执行playbook
  ansbile-playbook -i hosts.ini cluster.yml  
+
+三、vagrant相关命令
+启动主机： vagrant up
+重启主机： vagrant reload
+单跑shell脚本： vagrant provision --provision-with shell
+单跑ansible脚本： vagrant provision --provision-with ansible
+保存快照： vagrant snapshot save [快照名]
+恢复快照： vagrant snapshot restore [快照名]
