@@ -9,7 +9,9 @@
   tags:
     - apply
 
-- include_tasks: shell.yml
+- include_role:
+    name: addon
+    tasks_from: shell.yml
   loop:
     - kubectl create ns dev & >/dev/null
     - kubectl create ns test & >/dev/null

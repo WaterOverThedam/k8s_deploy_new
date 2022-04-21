@@ -12,7 +12,9 @@
   tags:
     - glusterfs_apply
 
-- include_tasks: shell.yml
+- include_role:
+    name: addon
+    tasks_from: shell.yml
   loop:
     - crictl pull myharbor.com/kubernetes/springboot-web-demo:v1
     - kubectl exec -it $(kubectl get pod -l app=web-deploy -o jsonpath='{.items[0].metadata.name}') -- bash -c "echo 'hello world'>/mooc-data/test.log" 

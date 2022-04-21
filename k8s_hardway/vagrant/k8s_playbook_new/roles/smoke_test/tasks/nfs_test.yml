@@ -8,7 +8,9 @@
   tags:
     - nfs_apply
 
-- include_tasks: shell.yml
+- include_role:
+    name: addon
+    tasks_from: shell.yml
   loop:
     - crictl pull busybox
     - kubectl -n test exec -it $(kubectl -n test get pod -l app=busybox -o jsonpath='{.items[0].metadata.name}') -- sh -c "echo 'hello world'>/data/test.log"

@@ -4,6 +4,15 @@
 - name: install nfs rpm
   yum: name="nfs-utils,rpcbind" state=present
 
+- include_tasks: shell.yml
+  vars:
+    exec_host: "{{ groups.worker[-1] }}"
+  loop: 
+    - mkdir /data/{k8s,pv,sc} 
+    - chmod -R 777 /data 
+  tags:
+    - nfs_datadir
+
 - name: nfs config
   template: src="{{item.src}}" dest="{{item.dest}}"
   loop:
@@ -15,9 +24,7 @@
 
 - meta: flush_handlers
 
-- include_role:
-    name: smoke_test
-    tasks_from: shell.yml
+- include_tasks: shell.yml
   vars:
     exec_host: "{{ groups.worker[-1] }}"
   loop: 
