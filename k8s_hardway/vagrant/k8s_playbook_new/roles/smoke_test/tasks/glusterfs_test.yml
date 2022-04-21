@@ -17,14 +17,15 @@
   tags:
     - glusterfs_apply
 
+- include_role:
+    name: addon
+    tasks_from: shell.yml
+  loop:
+    - crictl pull myharbor.com/kubernetes/springboot-web-demo:v1
+  tags:
+    - glusterfs_test_image
+    
 - block:
-  - include_role:
-      name: addon
-      tasks_from: shell.yml
-    loop:
-      - crictl pull myharbor.com/kubernetes/springboot-web-demo:v1
-    tags:
-      - glusterfs_test_image
   - include_role:
       name: addon
       tasks_from: get_svc_ip.yml
