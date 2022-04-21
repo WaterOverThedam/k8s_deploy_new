@@ -1,5 +1,0 @@
-- name: get heketi server IP
-  register: heketi_server
-  shell: 'kubectl get svc -l glusterfs=heketi-service -o jsonpath="{.items[0].spec.clusterIP}"'
-  tags:
-    - heketi_ip

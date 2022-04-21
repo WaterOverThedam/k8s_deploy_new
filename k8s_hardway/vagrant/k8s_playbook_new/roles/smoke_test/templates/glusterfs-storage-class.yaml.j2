@@ -4,7 +4,7 @@ metadata:
   name: glusterfs-storage-class
 provisioner: kubernetes.io/glusterfs
 parameters:
-  resturl: "http://{{heketi_server.stdout}}"
+  resturl: "http://{{svc_ip.stdout}}"
   restauthenabled: "true"
   restuser: "admin"
   secretNamespace: "default"

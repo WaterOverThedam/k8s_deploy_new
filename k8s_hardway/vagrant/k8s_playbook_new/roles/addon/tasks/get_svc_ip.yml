@@ -1,0 +1,10 @@
+- name: get svc IP
+  register: svc_ip
+  shell: |
+    {% if resource|default('svc')=='svc' %} 
+      kubectl get svc -l {{label|default("glusterfs=heketi-service")}} -o jsonpath="{.items[0].spec.clusterIP}"
+    {% else %}
+      kubectl get pod -l {{label|default("glusterfs=heketi-service")}} -o jsonpath='{.items[0].status.podIPs[0].ip}'
+    {% end if %}
+  tags:
+    - heketi_ip
