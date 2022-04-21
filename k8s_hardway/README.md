@@ -14,7 +14,7 @@
  cd vagrant && sh up.sh
 
 ## 方法二、普通环境下，直接ansible命令部署
-*  1）修改hosts.ini;修改group_vars/all.yml，替换来自extra_vars变量
+* 1）修改hosts.ini;修改group_vars/all.yml，替换来自extra_vars变量
 * 2）执行playbook
  ansbile-playbook -i hosts.ini cluster.yml  
 
@@ -25,3 +25,4 @@
 * 单跑ansible脚本： vagrant provision --provision-with ansible
 * 保存快照： vagrant snapshot save [快照名]
 * 恢复快照： vagrant snapshot restore [快照名]
+* 删除主机： vagrant destroy -f
