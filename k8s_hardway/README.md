@@ -18,12 +18,12 @@
 ```bash
  cd vagrant && sh up.sh
 ``` 
-
 ## 方法二、普通环境下，直接ansible命令部署
-* 1）修改hosts.ini;修改group_vars/all.yml，替换来自extra_vars变量
-* 2）执行playbook
+*  1）修改hosts.ini;修改group_vars/all.yml，替换来自extra_vars变量
+*  2）执行playbook
+```bash
  ansbile-playbook -i hosts.ini cluster.yml  
-
+```
 # 三、vagrant相关命令
 * 启动主机： vagrant up
 * 重启主机： vagrant reload
