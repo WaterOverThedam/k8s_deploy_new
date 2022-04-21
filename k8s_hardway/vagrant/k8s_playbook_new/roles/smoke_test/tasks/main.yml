@@ -1,6 +1,5 @@
 ---
 
-
 - include_role:
     name: addon
     tasks_from: apply.yml
@@ -20,6 +19,10 @@
   tags:
     - pod_test
 
+- import_role:
+    name: addon
+    tasks_from: get_heketi_ip.yml
+    
 - import_tasks: glusterfs_test.yml 
   tags:
     - glusterfs_test
