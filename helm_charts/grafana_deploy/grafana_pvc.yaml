@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: grafana-data-pvc
+  namespace: winex-monitor
+spec:
+  storageClassName: nas-storageclass-ua
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi

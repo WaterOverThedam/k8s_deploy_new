@@ -1,0 +1,73 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  name: winning-grafana
+  namespace: winex-monitor
+spec:
+  rules:
+    - host: grafana.winning.com.cn
+      http:
+        paths:
+          - backend:
+              service:
+                name: winning-grafana
+                port:
+                  number: 3000
+            path: /
+            pathType: Prefix
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: winning-grafana
+  namespace: winex-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: winning-grafana
+  template:
+    metadata:
+      labels:
+        app: winning-grafana
+    spec:
+      volumes:
+      - name: grafana-data-volume
+        persistentVolumeClaim:
+          claimName: grafana-data-pvc
+      containers:
+      - env:
+        - name: TZ
+          value: Asia/Shanghai
+        #image: registry.winning.com.cn/mid/grafana-enterprise:8.2.0
+        image: grafana/grafana-enterprise:8.2.0
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 104
+        name: winning-grafana
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        volumeMounts:
+          - name: grafana-data-volume
+            mountPath: /var/lib/grafana
+      imagePullSecrets:
+      - name: image-pull-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: winning-grafana
+  labels:
+    app: winning-grafana
+  namespace: winex-monitor  
+spec:
+  #type: LoadBalancer
+  ports:
+  - port: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: winning-grafana
