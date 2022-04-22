@@ -14,7 +14,7 @@ ntp_server: '{{ntp_server}}'
 use_cache: '{{vagrant_cache|bool}}'
 container_proxy: '{{use_proxy|bool}}' 
 http_proxy: "{{http_proxy}}"
-no_proxy: "{{no_proxy}}"
+no_proxy: "{{no_proxy|join(',')}}"
 myharbor_server: "{{myharbor_server}}"
 
 #主机网络信息

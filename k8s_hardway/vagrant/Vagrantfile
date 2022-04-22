@@ -18,7 +18,7 @@ SETTINGS['authorize'] = "#{SETTINGS['ssh_path']}/id_rsa.pub"
 SETTINGS['key'] = "#{SETTINGS['ssh_path']}/id_rsa"
 NTP_SERVER = "192.168.0.14"
 REGISTRY_SERVER = "192.168.0.14"
-PORXY_ADDR="http://192.168.0.112:7890"
+PORXY_ADDR="http://192.168.0.102:7890"
 
 NO_PROXY=(1..NODES).map {|j| "#{NETWORK_IP_PREFIX}#{j}"}
 NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
