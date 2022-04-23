@@ -42,6 +42,14 @@
   tags:
     - addon
 
+- hosts: worker
+  gather_facts: false
+  roles:
+    - helm_charts
+  tags:
+    - helm_charts
+    - charts
+
 - hosts: all
   gather_facts: false
   roles:
@@ -49,3 +57,4 @@
   tags:
     - test
     - smoke_test
+    

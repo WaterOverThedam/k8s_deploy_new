@@ -2,7 +2,7 @@
 
 - block:
   - name: addon images copy
-    copy: src=images dest=/tmp
+    synchronize: src=images dest=/tmp
   - name: docker_load
     import_role:
       name: worker_svc

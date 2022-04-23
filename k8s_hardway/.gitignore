@@ -4,7 +4,7 @@
 */.vagrant/**
 files/* 
 *.DS_Store 
-vagrant/k8s_playbook_new/roles/worker_svc/files/images/**
-vagrant/k8s_playbook_new/roles/addon/files/images/**
-vagrant/k8s_playbook_new/roles/binary/files
+roles/worker_svc/files/images/**
+roles/addon/files/images/**
+roles/binary/files
 *.tar.gz

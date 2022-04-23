@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-{% if container_proxy %}
+{% if use_proxy %}
 Environment="HTTP_PROXY={{http_proxy}}"
 Environment="HTTPS_PROXY={{http_proxy}}"
 Environment="NO_PROXY={{no_proxy}}"

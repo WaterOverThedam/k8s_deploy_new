@@ -4,11 +4,21 @@
 NODES = 3
 DISKS = 2
 DISKS_SIZE=40
+##是否使用已下载的镜像
 CACHE = true
+##是否是配置代理，如果有代理，可以配置
 USE_PROXY = true
+##是否安装charts的服务。如：grafana,prometheus
+INSTALL_CHARTS= false
 DISK_DIR = "./volumes"
 LIBVIRT_DISK_CACHE = "default"
+##创建主机的网段
 NETWORK_IP_PREFIX = "192.168.0.6"
+##时间服务用于保障集群的时间
+NTP_SERVER = "192.168.0.14"
+##镜像仓库地址，如果没有可以，可以空着
+REGISTRY_SERVER = "192.168.0.14"
+##创建主机的主机名模板
 HOST_NAME_TPL = "node%01d.hw.cn"
 SETTINGS = {}
 IP_ADDRS = {}
@@ -16,9 +26,7 @@ host_vars = {}
 SETTINGS['ssh_path'] = "~/.ssh"
 SETTINGS['authorize'] = "#{SETTINGS['ssh_path']}/id_rsa.pub"
 SETTINGS['key'] = "#{SETTINGS['ssh_path']}/id_rsa"
-NTP_SERVER = "192.168.0.14"
-REGISTRY_SERVER = "192.168.0.14"
-PORXY_ADDR="http://192.168.0.102:7890"
+PORXY_ADDR="http://192.168.0.112:7890"
 
 NO_PROXY=(1..NODES).map {|j| "#{NETWORK_IP_PREFIX}#{j}"}
 NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
@@ -70,7 +78,7 @@ Vagrant.configure("2") do |config|
     
 
     (1..NODES).each do |i|
-        IP_ADDRS["hw-node#{i}"] = "#{NETWORK_IP_PREFIX}#{i}"
+        #IP_ADDRS["hw-node#{i}"] = "#{NETWORK_IP_PREFIX}#{i}"
         config.vm.define vm_name = HOST_NAME_TPL % [i] do |node|
             node.vm.hostname = vm_name
             node.vm.network "public_network", ip: "#{NETWORK_IP_PREFIX}#{i}",bridge: "en0: 以太网"
@@ -126,14 +134,14 @@ Vagrant.configure("2") do |config|
                     }
                     ansible.extra_vars = {
                         "http_proxy"  => PORXY_ADDR,
-                        "no_proxy" => NO_PROXY,
+                        "no_proxy" => NO_PROXY.join(','),
                         "use_proxy" => USE_PROXY,
-                        "vagrant_cache" => ENV['VAGRANT_CACHE'] ? ENV['VAGRANT_CACHE'] : CACHE,
+                        "use_cache" => ENV['VAGRANT_CACHE'] ? ENV['VAGRANT_CACHE'] : CACHE,
                         "ntp_server"  => NTP_SERVER,
                         "myharbor_server" => REGISTRY_SERVER,
+                        "install_charts" => INSTALL_CHARTS,
                          #ansible执行需要root
-                        "ansible_user" => "root",
-                        "ip_addrs" => IP_ADDRS
+                        "ansible_user" => "root" 
                    }
                end
             end
