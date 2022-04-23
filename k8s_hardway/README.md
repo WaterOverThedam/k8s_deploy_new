@@ -20,8 +20,8 @@
   sh up.sh
 ``` 
 ## 方法二、普通环境下，直接ansible命令部署
-*  1）修改inventory的hosts.ini;修改group_vars/all.yml，替换来自extra_vars变量
-*  2）执行playbook
+*  1）修改inventory下的hosts.ini主机信息;和group_vars/all.yml的extra_vars可覆盖部分
+*  2）执行playbook命令
 ```bash
  ansbile-playbook -i inventory/hosts.ini cluster.yml  
 ```
@@ -42,6 +42,8 @@ Vagrantfile 配置如下可调整
                     ansible.raw_arguments  = [
                     #用于单跑role，用tag过滤
                       "-t addon,test"
-                    ]     
+                    ]    
+     等价于<=>
+ansbile-playbook -i inventory/hosts.ini cluster.yml  -t addon
 ```
 * 单跑ansible脚本： vagrant provision --provision-with ansible
