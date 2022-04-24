@@ -27,6 +27,15 @@
 - import_tasks: glusterfs_test.yml 
   tags:
     - glusterfs_test
-- import_tasks: nfs_test.yml 
+
+- include_tasks: nfs_test.yml 
   tags:
     - nfs_test
+- import_tasks: nfs_client_provisioner_test.yml 
+  run_once: true
+  tags:
+    - nfs_client_provisioner_test
+- include_tasks: nfs_csi_driver_test.yml
+  when: install_charts
+  tags:
+    - nfs_csi_test

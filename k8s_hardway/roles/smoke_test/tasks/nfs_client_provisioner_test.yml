@@ -1,0 +1,13 @@
+- include_role:
+    name: addon
+    tasks_from: apply.yml
+  loop:
+    - { name: nfs-sc-pvc, yaml: "{{role_path}}/templates/nfs_pvc.yml.j2" }
+
+- include_role:
+    name: addon
+    tasks_from: shell.yml
+  loop:
+    - kubectl get pvc "pvc-{{nfs_sc}}" -n test
+ 
+ 

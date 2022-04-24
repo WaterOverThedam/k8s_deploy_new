@@ -1,0 +1,11 @@
+---
+
+- include_tasks: apply.yml
+  name: "install nfs_client_provisioner"
+  run_once: true
+  loop:
+    - { name: rbac, yaml: "nfs-client-provisioner/rbac.yaml" }
+    - { name: deployment, yaml: "nfs-client-provisioner/deployment.yaml.j2" }
+    - { name: nfs-storage-class yaml, yaml: "nfs-client-provisioner/class.yaml.j2" }
+  tags:
+    - apply

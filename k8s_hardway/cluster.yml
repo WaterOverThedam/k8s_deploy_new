@@ -44,11 +44,14 @@
 
 - hosts: worker
   gather_facts: false
+  vars:
+    exec_dir: /tmp/charts
   roles:
-    - helm_charts
+    - { name: helm_charts, when: install_charts }
   tags:
     - helm_charts
     - charts
+  
 
 - hosts: all
   gather_facts: false

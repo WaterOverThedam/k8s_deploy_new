@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nfs-csi-1
+  namespace: test
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  csi:
+    driver: nfs.csi.k8s.io
+    readOnly: false
+    volumeHandle: unique-volumeid  ##确保它是集群中的唯一 ID
+    volumeAttributes:
+      server: {{nfs_server}}
+      share: /data/pv
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-nfs-csi-static
+  namespace: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: pv-nfs-csi-1
+  storageClassName: ""
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-csi
+  namespace: test
+  labels:
+    storage: 'csi'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      storage: 'csi'
+  template:
+    metadata:
+      labels:
+        storage: 'csi'
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command: ['sh', '-c', 'echo "Hello, Kubernetes!" && sleep infinity']
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: pvc-nfs-csi-static

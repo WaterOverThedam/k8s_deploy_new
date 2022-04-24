@@ -3,7 +3,7 @@ apiVersion: v1
 metadata:
   name: glusterfs-pvc
 spec:
-  storageClassName: glusterfs-storage-class
+  storageClassName: {{glusterfs_sc}}
   accessModes:
     - ReadWriteOnce
   resources:

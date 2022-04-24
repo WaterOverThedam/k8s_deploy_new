@@ -41,6 +41,7 @@ ExecStart=/usr/local/bin/kube-apiserver \
   --tls-private-key-file=/etc/kubernetes/ssl/kubernetes-key.pem \
   --enable-aggregator-routing=true \
   --allow-privileged=true \
+  --feature-gates=RemoveSelfLink=false \
   --v=1
 Restart=on-failure
 RestartSec=5

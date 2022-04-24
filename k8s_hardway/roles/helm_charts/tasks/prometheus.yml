@@ -1,0 +1,11 @@
+
+
+- name: config prometheus values
+  template: src=values-prometheus.yaml.j2 dest="/tmp/charts/values-prometheus.yaml"
+- include_role:
+    name: addon
+    tasks_from: shell.yml
+  loop:
+    - helm uninstall prometheus -n monitor || /bin/true
+    - helm install prometheus kube-prometheus -f values-prometheus.yaml -n monitor
+ 

@@ -5,4 +5,8 @@ nfs_data_dirs:
   - /data/k8s
   - /data/pv
   - /data/sc
+  - /data/mysql
+  - /data/csi
+  - /data/other
+
 

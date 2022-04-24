@@ -66,3 +66,12 @@
   - debug: var=glusterfs_check.stdout_lines
   tags:
     - glusterfs_check
+
+- include_tasks: apply.yml
+  loop:
+    - { name: heketi-secret, yaml: "heketi-secret.yml"}
+    - { name: glusterfs-sc, yaml: "glusterfs-storage-class.yaml.j2" }
+  tags:
+    - glusterfs_sc_apply
+
+ 

@@ -10,8 +10,6 @@
     name: addon
     tasks_from: apply.yml
   loop:
-    - { name: heketi-secret, yaml: "{{role_path}}/templates/heketi-secret.yml"}
-    - { name: glusterfs-sc, yaml: "{{role_path}}/templates/glusterfs-storage-class.yaml.j2" }
     - { name: glusterfs-pvc, yaml: "{{role_path}}/templates/glusterfs-pvc.yaml" }
     - { name: web-deploy, yaml: "{{role_path}}/templates/web-deploy.yaml" }
   tags:

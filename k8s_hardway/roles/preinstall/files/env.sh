@@ -19,6 +19,12 @@ export PATH=$PATH:/usr/local/bin
 }
 source /etc/bashrc
 
+
+nerdctl version &>/dev/null && [ $(grep -c helm /etc/bashrc) -eq 0 ] && {
+echo '
+source <(helm completion bash)
+'>>/etc/bashrc 
+} 
 nerdctl --version &>/dev/null && [ $(grep -c nerdctl /etc/bashrc) -eq 0 ] && {
 echo '
 alias docker="nerdctl -n k8s.io"
@@ -30,6 +36,9 @@ source <(kubectl completion bash)
 alias k=kubectl
 complete -F __start_kubectl k
 alias kk="kubectl -n kube-system"
+alias kt="kubectl -n test"
+alias kd="kubectl -n dev"
+alias kmid="kubectl -n winex-mid"
 alias docker="nerdctl -n k8s.io"
 export do="--dry-run=client -o yaml"
 '>>/etc/bashrc

@@ -1,0 +1,11 @@
+
+
+- name: config grafana values
+  template: src=values-grafana.yaml.j2 dest="/tmp/charts/values-grafana.yaml"
+- include_role:
+    name: addon
+    tasks_from: shell.yml
+  loop:
+    - helm uninstall grafana -n monitor || /bin/true
+    - helm install grafana grafana -f values-grafana.yaml -n monitor
+ 

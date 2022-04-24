@@ -1,11 +1,9 @@
-- block:
-  - name: addon images copy
-    synchronize: src=images dest=/tmp
-  - name: docker_load
-    import_role:
-      name: worker_svc
-      tasks_from: docker_load.yml
-  tags:
-    - dockerload
-  when: use_cache
 
+
+- include_role:
+    name: addon
+    tasks_from: shell.yml
+  loop:
+    - helm uninstall csi-driver-nfs -n kube-system || /bin/true
+    - helm install csi-driver-nfs csi-driver-nfs -n kube-system
+ 

@@ -1,10 +1,11 @@
 *~
 *.sw?
 *.retry
-*/.vagrant/**
+.vagrant/
 files/* 
 *.DS_Store 
 roles/worker_svc/files/images/**
 roles/addon/files/images/**
 roles/binary/files
 *.tar.gz
+volumes/

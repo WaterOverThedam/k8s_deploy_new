@@ -3,23 +3,23 @@
 
 NODES = 3
 DISKS = 2
-DISKS_SIZE=40
+DISKS_SIZE=60
 ##是否使用已下载的镜像
 CACHE = true
 ##是否是配置代理，如果有代理，可以配置
 USE_PROXY = true
 ##是否安装charts的服务。如：grafana,prometheus
-INSTALL_CHARTS= false
+INSTALL_CHARTS= true
 DISK_DIR = "./volumes"
 LIBVIRT_DISK_CACHE = "default"
 ##创建主机的网段
-NETWORK_IP_PREFIX = "192.168.0.6"
+NETWORK_IP_PREFIX = "192.168.0.7"
 ##时间服务用于保障集群的时间
 NTP_SERVER = "192.168.0.14"
 ##镜像仓库地址，如果没有可以，可以空着
 REGISTRY_SERVER = "192.168.0.14"
 ##创建主机的主机名模板
-HOST_NAME_TPL = "node%01d.hw.cn"
+HOST_NAME_TPL = "node%01d.hw.com"
 SETTINGS = {}
 IP_ADDRS = {}
 host_vars = {}
@@ -31,14 +31,20 @@ PORXY_ADDR="http://192.168.0.112:7890"
 NO_PROXY=(1..NODES).map {|j| "#{NETWORK_IP_PREFIX}#{j}"}
 NO_PROXY.push("127.0.0.1","localhost","myharbor.com")
 
+unless Vagrant.has_plugin?("vagrant-disksize")
+    system "vagrant plugin install vagrant-disksize"
+end
+
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
     config.ssh.username = "vagrant"
     config.vm.box = "centos/7"
     config.vm.box_url = "https://app.vagrantup.com/centos/7"
     config.vm.box_version = "2004.01"
+    config.disksize.size = '70GB'
     config.vm.box_check_update = false
     config.vbguest.auto_update = false
+     
     #config.vm.synced_folder '/Users/tonywu/Downloads', '/home/vagrant/sync', type: "nfs", linux__nfs_options: ['rw','no_subtree_check','all_squash','async']
 
     if SETTINGS.include? 'authorize'
@@ -125,7 +131,7 @@ Vagrant.configure("2") do |config|
                     #用于单跑role，用tag过滤
                     #  "-t preinstall,certs,etcd"
                     ]       
-                    ansible.playbook = "k8s_playbook_new/cluster.yml"
+                    ansible.playbook = "cluster.yml"
                     ansible.groups = {
                         "master" => (1..NODES-1).map {|i| HOST_NAME_TPL % [i]},
                         "worker" => (1..NODES).map {|i| HOST_NAME_TPL % [i]},

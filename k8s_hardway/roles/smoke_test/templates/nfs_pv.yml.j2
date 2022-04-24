@@ -9,5 +9,5 @@ spec:
     - ReadWriteMany 
   nfs:
     path: /data/pv
-    server: {{hostvars[groups.worker[-1]].ip}}
+    server: {{nfs_server}}
 

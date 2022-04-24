@@ -13,3 +13,4 @@
   run_once: true
   tags:
     - "{{item.name}}"
+    - exec

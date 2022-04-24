@@ -44,14 +44,17 @@
   - import_tasks: glusterfs.yml
     tags:
       - glusterfs_client
-  - import_tasks: glusterfs_pv.yml
+  - import_tasks: glusterfs_sc.yml
     delegate_to: "{{groups.master[0]}}"
     run_once: true
     tags:
-      - glusterfs_pv
+      - glusterfs_sc
   tags:
     - glusterfs
 
 - import_tasks: nfs_pv.yml
   tags:
     - nfs_pv
+- import_tasks: nfs_client_provisioner.yml
+  tags:
+    - nfs_client_provisioner

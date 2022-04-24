@@ -4,6 +4,8 @@
   - name: "execute: {{item}}"
     register: result
     shell: "{{item}}"
+    args:
+      chdir: "{{exec_dir|default('/tmp')}}"
   - debug: var=result.stdout_lines
   delegate_to: "{{ exec_host|default(groups.master[0]) }}"
   run_once: true

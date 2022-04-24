@@ -1,0 +1,13 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: "pvc-{{nfs_sc}}"
+  namespace: test
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{nfs_sc}}
+  resources:
+    requests:
+      storage: 10Mi

@@ -1,12 +1,12 @@
 # 一、 准备镜像和二进制压缩包
 ##  1）files镜像和二进制压缩下载地址：
-     链接: https://pan.baidu.com/s/1c12oQMg1qe4Is6I53UxhDQ 提取码: a9as 
-##  2）下载好后，tar包移入程序目录新建的files文件夹
-##  3）当前目录执行
+     链接: https://pan.baidu.com/s/18bFvBZMjrqCVJJe4n8rV6A 提取码: n7kj 
+##  2）下载好后，tar包移入程序目录下的files文件夹
+##  3）程序根目录执行
 ```bash
- tar -xf files/vagrant_k8s_playbook_new_roles_addon_files_images.tar.gz
- tar -xf files/vagrant_k8s_playbook_new_roles_binary_files.tar.gz
- tar -xf files/vagrant_k8s_playbook_new_roles_worker_svc_files_images.tar.gz
+ tar -xf files/roles_addon_files_images.tar.gz
+ tar -xf files/roles_binary_files.tar.gz
+ tar -xf files/roles_worker_svc_files_images.tar.gz
 ```
 
 # 二、安装
@@ -36,7 +36,7 @@
 * 删除主机： vagrant destroy -f
 
 # 四、注意事项：
-* 如果中途有部分role任务，可以单独调用ansible role,仅跑失败的
+* 如果中途有部分role任务失败，可以单独调用ansible role,仅跑失败的
 ```bash
 Vagrantfile 配置如下可调整
                     ansible.raw_arguments  = [
@@ -47,3 +47,7 @@ Vagrantfile 配置如下可调整
 ansbile-playbook -i inventory/hosts.ini cluster.yml  -t addon,test
 ```
 * 单跑ansible脚本： vagrant provision --provision-with ansible
+
+# 五、小技巧
+role任务比较多，一旦失败，全部重新跑一遍会比较浪费时间。
+可以通过tag标签分步骤部署；成功一部分可以做下快照，再接着跑后面的任务

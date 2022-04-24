@@ -22,6 +22,9 @@
     - chrony
     - vim
     - conntrack-tools 
+    - rsync
+  tags:
+    - basic_pkg
 
 - name: config chrony
   template: src=chrony.conf.j2 dest=/etc/chrony.conf
