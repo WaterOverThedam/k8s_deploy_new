@@ -16,7 +16,8 @@
     - crictl pull busybox
     - kubectl -n test exec -it $(kubectl -n test get pod -l storage=csi -o jsonpath='{.items[0].metadata.name}') -- sh -c "echo 'hello csi driver'>/data/csi.log"
     - kubectl -n test exec -it $(kubectl -n test get pod -l storage=csi -o jsonpath='{.items[0].metadata.name}') -- sh -c  "cat /data/csi.log"
-    - crictl pull nginx:1.19 && sleep 3
+    - crictl pull nginx:1.19 
+    - sleep 3
     - kubectl -n test  exec -it statefulset-nfs-0 -- tail -1 /mnt/nfs/outfile
   tags:
     - nfs_test_res
