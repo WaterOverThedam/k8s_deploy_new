@@ -3,11 +3,11 @@
 
 NODES = 3
 DISKS = 2
-DISKS_SIZE=60
+DISKS_SIZE=800
 ##是否使用已下载的镜像
 CACHE = true
 ##是否是配置代理，如果有代理，可以配置
-USE_PROXY = true
+USE_PROXY = false
 ##是否安装charts的服务。如：grafana,prometheus
 INSTALL_CHARTS= true
 DISK_DIR = "./volumes"

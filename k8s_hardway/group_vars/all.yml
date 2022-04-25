@@ -10,10 +10,10 @@ COREDNS_CLUSTER_IP: "10.233.0.10"
 
 #extra_vars变量可覆盖配置
 http_proxy: "http://192.168.0.112:7890"
-no_proxy: "192.168.0.51,192.168.0.52,192.168.0.53,127.0.0.1,localhost,myharbor.com"
+no_proxy: "192.168.0.51,192.168.0.52,192.168.0.53,127.0.0.1,localhost,myharbor.com,registry.winning.com.cn,fosun-health-registry.cn-hangzhou.cr.aliyuncs.com"
 use_cache: true
 install_charts: true
-use_proxy: true
+use_proxy: false
 populate_inventory_to_hosts_file: true
 customed_containerd_toml: true
 ntp_server: '192.168.0.14'
