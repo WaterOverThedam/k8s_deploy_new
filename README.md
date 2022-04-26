@@ -23,7 +23,7 @@
 *  1）修改inventory下的hosts.ini主机信息;和group_vars/all.yml的extra_vars可覆盖部分
 *  2）执行playbook命令
 ```bash
- ansbile-playbook -i inventory/hosts.ini cluster.yml  
+ ansbile-playbook -i hosts.ini cluster.yml  
 ```
 
 # 三、vagrant相关命令
