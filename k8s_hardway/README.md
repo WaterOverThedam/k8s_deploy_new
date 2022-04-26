@@ -44,7 +44,7 @@ Vagrantfile 配置如下可调整
                       "-t addon,test"
                     ]    
      等价于<=>
-ansbile-playbook -i inventory/hosts.ini cluster.yml  -t addon,test
+ansbile-playbook -i hosts.ini cluster.yml  -t addon,test
 ```
 * 单跑ansible脚本： vagrant provision --provision-with ansible
 
