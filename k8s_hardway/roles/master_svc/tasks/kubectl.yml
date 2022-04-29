@@ -2,7 +2,8 @@
 - name: create .kube dir for kubectl
   file: path=~/.kube state=directory
 - name: copy admin.kubeconfig
-  copy: src=~/admin.kubeconfig dest=~/.kube/config remote_src=yes force=yes
+  copy: src=~/admin.kubeconfig dest=~/.kube/config mode=0600 remote_src=yes force=yes
+  tags: kube_config
 
 - block:
   - name: test kubectl
