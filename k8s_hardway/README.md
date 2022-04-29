@@ -4,9 +4,7 @@
 ##  2）下载好后，tar包移入程序目录下的files文件夹
 ##  3）程序根目录执行
 ```bash
- tar -xf files/roles_addon_files_images.tar.gz
- tar -xf files/roles_binary_files.tar.gz
- tar -xf files/roles_worker_svc_files_images.tar.gz
+  find files -name '*tar.gz'|xargs -I {} tar -xvf {}
 ```
 
 # 二、安装
